@@ -2,6 +2,10 @@
 
 My contributions to R4DS Online Learning Community's [#TidyTuesday event](https://github.com/rfordatascience/tidytuesday)
 
+## Himalayan Expeditions (2020-09-22)
+
+![Expeditions](https://github.com/bamattre/tidytuesday/blob/master/2020-09-22_himalayan_exp.png)
+
 ## Friends (2020-09-08)
 
 ![Friends](https://github.com/bamattre/tidytuesday/blob/master/2020-09-08%20Friends.png)
