@@ -11,6 +11,8 @@ library(janitor)
 
 # viz
 library(ggpubr)
+library(grid)
+library(gridExtra)
 
 # Import fonts 
 library(extrafont)
@@ -57,11 +59,14 @@ mem2 <- mem %>%
                                
 # scatter histogram?
 mem2 %>%
-  filter(!is.na(sex)) %>%
-  ggscatterhist(x = "highpoint_date", y = "highpoint_metres",
-                color = "sex", alpha = 0.5,
-                margin.params = list(fill = "sex",
-                                     color = "black", size = 0.2))
+  filter(sex == "F") %>%
+  ggscatterhist(x = "highpoint_date", y = "diff_metres",
+                #color = "sex", 
+                alpha = 0.5, shape = 16,
+                margin.params = list(fill = "gray", size = 0.2)
+                #margin.params = list(fill = "sex",
+                #                     color = "black", size = 0.2)
+                )
 
 p <- mem2 %>%
   filter(sex == "F") %>%
@@ -91,7 +96,8 @@ p <- mem2 %>%
         text = element_text(size = 12, family = "Bahnschrift"),
         plot.title = element_text(face = "bold"),
         panel.grid = element_blank(),
-        panel.background = element_blank()) +
+        panel.background = element_blank(),
+        plot.background = element_rect(fill = "#dddddd")) +
   labs(x = "Date Reaching Highpoint", y = "Meters from Peak Height",
        title = "Women on Himalayan Expeditions",
        subtitle = "Points on the top indicate a successful climb to the peak") 
@@ -99,3 +105,91 @@ p <- mem2 %>%
 ggsave("2020-09-22_himalayan_exp.png", p, 
        device = "png", width = 9, height = 6, dpi = 150)
 
+# facet wrapped
+
+g1 <- mem2 %>%
+  filter(sex == "F") %>% 
+  ggplot(aes(highpoint_date, diff_metres)) +
+  geom_point(alpha = 0.1, shape = 16) +
+  theme(legend.position = "none",
+        text = element_text(size = 12, family = "Bahnschrift"),
+        plot.title = element_text(face = "bold"),
+        panel.grid = element_blank(),
+        panel.background = element_blank(),
+        plot.background = element_rect(fill = "#dddddd", color = NA)) +
+  labs(y = "Meters from Peak Height", x = "",
+       title = "All Women Climbers") 
+
+g2 <- mem2 %>%
+  filter(sex == "F", died == TRUE) %>% 
+  ggplot(aes(highpoint_date, diff_metres)) +
+  geom_point(alpha = 0.7, shape = 16, color = "#ee6677") +
+  theme(legend.position = "none",
+        text = element_text(size = 12, family = "Bahnschrift"),
+        plot.title = element_text(face = "bold"),
+        panel.grid = element_blank(),
+        panel.background = element_blank(),
+        plot.background = element_rect(fill = "#dddddd", color = NA)) +
+  labs(x = "", y = "", title = "Deaths") 
+
+g3 <- mem2 %>%
+  filter(sex == "F", solo == TRUE) %>% 
+  ggplot(aes(highpoint_date, diff_metres)) +
+  geom_point(alpha = 0.7, shape = 16, color = "#228833") +
+  theme(legend.position = "none",
+        text = element_text(size = 12, family = "Bahnschrift"),
+        plot.title = element_text(face = "bold"),
+        panel.grid = element_blank(),
+        panel.background = element_blank(),
+        plot.background = element_rect(fill = "#dddddd", color = NA)) +
+  labs(x = "", y = "", title = "Solo Climbed") 
+
+g4 <- mem2 %>%
+  filter(sex == "F", oxygen_used == TRUE) %>% 
+  ggplot(aes(highpoint_date, diff_metres)) +
+  geom_point(alpha = 0.7, shape = 16, color = "#4477aa") +
+  theme(legend.position = "none",
+        text = element_text(size = 12, family = "Bahnschrift"),
+        plot.title = element_text(face = "bold"),
+        panel.grid = element_blank(),
+        panel.background = element_blank(),
+        plot.background = element_rect(fill = "#dddddd", color = NA)) +
+  labs(x = "", y = "Meters from Peak Height", title = "Used Oxygen") 
+
+g5 <- mem2 %>%
+  filter(sex == "F", str_detect(expedition_role, "Leader")) %>% 
+  ggplot(aes(highpoint_date, diff_metres)) +
+  geom_point(alpha = 0.7, shape = 16, color = "#ccbb44") +
+  theme(legend.position = "none",
+        text = element_text(size = 12, family = "Bahnschrift"),
+        plot.title = element_text(face = "bold"),
+        panel.grid = element_blank(),
+        panel.background = element_blank(),
+        plot.background = element_rect(fill = "#dddddd", color = NA)) +
+  labs(x = "Date Reaching Highpoint", y = "", title = "Led Expedition") 
+
+g6 <- mem2 %>%
+  filter(sex == "F", age >= 50) %>% 
+  ggplot(aes(highpoint_date, diff_metres)) +
+  geom_point(alpha = 0.7, shape = 16, color = "#aa3377") +
+  theme(legend.position = "none",
+        text = element_text(size = 12, family = "Bahnschrift"),
+        plot.title = element_text(face = "bold"),
+        panel.grid = element_blank(),
+        panel.background = element_blank(),
+        plot.background = element_rect(fill = "#dddddd", color = NA)) +
+  labs(x = "", y = "", title = "Aged 50 or Older") 
+  
+grid <- arrangeGrob(g1, g2, g3, g4, g5, g6, ncol = 3,
+                     top = textGrob("Women in Himalayan Expeditions", 
+                                    gp = gpar(fontfamily = "Bahnschrift",
+                                              fontface = "bold",
+                                              hjust = -1,
+                                              cex = 2)),
+                     bottom = textGrob("Points on the top indicate a successful climb to the peak\nTidy Tuesday - @rbamattre", 
+                                       gp = gpar(fontfamily = "Bahnschrift",
+                                                 hjust = 0,
+                                                 cex = 0.8)))
+
+ggsave("himalaya.png", grid, device = "png", 
+       width = 11, height = 9, bg = "#dddddd")
