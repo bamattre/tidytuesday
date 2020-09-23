@@ -116,7 +116,7 @@ g1 <- mem2 %>%
         plot.title = element_text(face = "bold"),
         panel.grid = element_blank(),
         panel.background = element_blank(),
-        plot.background = element_rect(fill = "#dddddd", color = NA)) +
+        plot.background = element_rect(fill = "#f8f8f8", color = NA)) +
   labs(y = "Meters from Peak Height", x = "",
        title = "All Women Climbers") 
 
@@ -129,7 +129,7 @@ g2 <- mem2 %>%
         plot.title = element_text(face = "bold"),
         panel.grid = element_blank(),
         panel.background = element_blank(),
-        plot.background = element_rect(fill = "#dddddd", color = NA)) +
+        plot.background = element_rect(fill = "#f8f8f8", color = NA)) +
   labs(x = "", y = "", title = "Deaths") 
 
 g3 <- mem2 %>%
@@ -141,7 +141,7 @@ g3 <- mem2 %>%
         plot.title = element_text(face = "bold"),
         panel.grid = element_blank(),
         panel.background = element_blank(),
-        plot.background = element_rect(fill = "#dddddd", color = NA)) +
+        plot.background = element_rect(fill = "#f8f8f8", color = NA)) +
   labs(x = "", y = "", title = "Solo Climbed") 
 
 g4 <- mem2 %>%
@@ -153,7 +153,7 @@ g4 <- mem2 %>%
         plot.title = element_text(face = "bold"),
         panel.grid = element_blank(),
         panel.background = element_blank(),
-        plot.background = element_rect(fill = "#dddddd", color = NA)) +
+        plot.background = element_rect(fill = "#f8f8f8", color = NA)) +
   labs(x = "", y = "Meters from Peak Height", title = "Used Oxygen") 
 
 g5 <- mem2 %>%
@@ -165,7 +165,7 @@ g5 <- mem2 %>%
         plot.title = element_text(face = "bold"),
         panel.grid = element_blank(),
         panel.background = element_blank(),
-        plot.background = element_rect(fill = "#dddddd", color = NA)) +
+        plot.background = element_rect(fill = "#f8f8f8", color = NA)) +
   labs(x = "Date Reaching Highpoint", y = "", title = "Led Expedition") 
 
 g6 <- mem2 %>%
@@ -177,7 +177,7 @@ g6 <- mem2 %>%
         plot.title = element_text(face = "bold"),
         panel.grid = element_blank(),
         panel.background = element_blank(),
-        plot.background = element_rect(fill = "#dddddd", color = NA)) +
+        plot.background = element_rect(fill = "#f8f8f8", color = NA)) +
   labs(x = "", y = "", title = "Aged 50 or Older") 
   
 grid <- arrangeGrob(g1, g2, g3, g4, g5, g6, ncol = 3,
@@ -192,4 +192,4 @@ grid <- arrangeGrob(g1, g2, g3, g4, g5, g6, ncol = 3,
                                                  cex = 0.8)))
 
 ggsave("himalaya.png", grid, device = "png", 
-       width = 11, height = 9, bg = "#dddddd")
+       width = 11, height = 9, bg = "#f8f8f8")
