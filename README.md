@@ -2,6 +2,10 @@
 
 My contributions to R4DS Online Learning Community's [#TidyTuesday event](https://github.com/rfordatascience/tidytuesday)
 
+## NCAA Women's Basketball Tournaments
+
+![NCAA Womens](https://github.com/bamattre/tidytuesday/blob/master/2020-10-06%20ncaa%20womens%20basketball.png)
+
 ## Beyonce ~~and Taylor Swift~~ (2020-09-29)
 
 ![Beyonce](https://github.com/bamattre/tidytuesday/blob/master/2020-09-29%20beyonce.png)
