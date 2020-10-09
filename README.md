@@ -5,6 +5,7 @@ My contributions to R4DS Online Learning Community's [#TidyTuesday event](https:
 ## NCAA Women's Basketball Tournaments
 
 ![NCAA Womens](https://github.com/bamattre/tidytuesday/blob/master/2020-10-06%20ncaa%20womens%20basketball.png)
+<img src="https://github.com/bamattre/tidytuesday/blob/master/2020-10-06%20ncaa%20womens%20basketball.png", width = "100">
 
 ## Beyonce ~~and Taylor Swift~~ (2020-09-29)
 
