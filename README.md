@@ -2,6 +2,10 @@
 
 My contributions to R4DS Online Learning Community's [#TidyTuesday event](https://github.com/rfordatascience/tidytuesday)
 
+## Datasaurus
+
+![Datasaurus](https://github.com/bamattre/tidytuesday/blob/master/2020-10-13%20datasaurus.gif)
+
 ## NCAA Women's Basketball Tournaments
 
 ![NCAA Womens](https://github.com/bamattre/tidytuesday/blob/master/2020-10-06%20ncaa%20womens%20basketball.png)
