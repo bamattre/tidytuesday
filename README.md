@@ -2,6 +2,10 @@
 
 My contributions to R4DS Online Learning Community's [#TidyTuesday event](https://github.com/rfordatascience/tidytuesday)
 
+## Great American Beer Festival
+
+![Beer](https://github.com/bamattre/tidytuesday/blob/master/2020-10-20%20beer.png)
+
 ## Datasaurus
 
 ![Datasaurus](https://github.com/bamattre/tidytuesday/blob/master/2020-10-13%20datasaurus.gif)
