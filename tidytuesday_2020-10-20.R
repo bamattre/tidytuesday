@@ -102,6 +102,7 @@ top_styles %>%
   theme(plot.background = element_rect(fill = "#242F40"),
         text = element_text(color = "white"),
         legend.title = element_blank(),
+        legend.position = "right",
         legend.background = element_rect(fill = NA, color = NA),
         legend.key = element_rect(fill = NA),
         plot.title = element_text(hjust = 0.5, size = 30, color = "#EBAA31"),
