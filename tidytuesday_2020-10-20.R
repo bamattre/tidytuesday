@@ -15,7 +15,6 @@ library(extrafont)
 # viz
 #install.packages("statebins", repos = c("https://cinc.rud.is", "https://cloud.r-project.org/"))
 library(statebins)
-library(geofacet)
 library(ggtext)
 
 # load data
