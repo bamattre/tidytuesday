@@ -2,6 +2,10 @@
 
 My contributions to R4DS Online Learning Community's [#TidyTuesday event](https://github.com/rfordatascience/tidytuesday)
 
+## Washington Trails
+
+![Washington Trails](https://github.com/bamattre/tidytuesday/blob/master/2020-11-24%20washington%20trails.png)
+
 ## Great American Beer Festival
 
 ![Beer](https://github.com/bamattre/tidytuesday/blob/master/2020-10-20%20beer.png)
