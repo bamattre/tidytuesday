@@ -2,6 +2,10 @@
 
 My contributions to R4DS Online Learning Community's [#TidyTuesday event](https://github.com/rfordatascience/tidytuesday)
 
+## Toronto Shelters
+
+![Toronto Shelters](https://github.com/bamattre/tidytuesday/blob/master/2020-12-01%20toronto%20shelters.png)
+
 ## Washington Trails
 
 ![Washington Trails](https://github.com/bamattre/tidytuesday/blob/master/2020-11-24%20washington%20trails.png)
