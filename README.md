@@ -2,6 +2,10 @@
 
 My contributions to R4DS Online Learning Community's [#TidyTuesday event](https://github.com/rfordatascience/tidytuesday)
 
+## Netflix Movies (Python)
+
+![Netflix Movies](https://github.com/bamattre/tidytuesday/blob/master/2021-04-20%20netflix%20movies.png)
+
 ## Toronto Shelters
 
 ![Toronto Shelters](https://github.com/bamattre/tidytuesday/blob/master/2020-12-01%20toronto%20shelters.png)
