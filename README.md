@@ -2,6 +2,10 @@
 
 My contributions to R4DS Online Learning Community's [#TidyTuesday event](https://github.com/rfordatascience/tidytuesday)
 
+## US Infrastructure
+
+![US Infrastructure](https://github.com/bamattre/tidytuesday/blob/master/images/2021-08-13_infrastructure.png)
+
 ## Olympics
 
 ![Olympics](https://github.com/bamattre/tidytuesday/blob/master/images/tidytuesday_2021-07-27_olympics_athletes_wealth.png)
