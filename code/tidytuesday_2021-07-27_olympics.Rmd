@@ -1,0 +1,434 @@
+---
+title: "Olympics and Income"
+output:
+  html_document:
+    df_print: paged
+---
+
+The Olympics are about talent, hard work, and dreams. I think they're also about wealth, infrastructure, and resources.
+
+The guiding question for this exploration is:
+
+**Is participation and medals in the Olympics disproportionately related to country's wealth?**
+
+Or in other words: if you have immense talent, are you more likely to make it into the Olympics and win because of being born in a wealthy industrialized country?
+
+## Load some packages
+
+```{r message=FALSE, warning=FALSE}
+# load
+library(tidytuesdayR) # Get tidy tuesday data
+library(WDI) # World Bank World Development Indicators: https://datatopics.worldbank.org/world-development-indicators/
+
+# wrangle
+library(tidyverse) # of course
+library(lubridate)
+library(janitor) # clean column names and nice tables
+
+# model
+library(rstatix) # pipeable statistical tests
+
+# viz
+library(gghighlight) # filter() equivalent for ggplots
+
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+```
+
+## Read in the data
+
+Let's look from 1960 on, since that's when the World Development Indicators start.
+
+```{r}
+# load data from tidy tuesday package
+tuesdata <- tidytuesdayR::tt_load('2021-07-27')
+
+olympics <- tuesdata$olympics %>%
+  filter(year >= 1960)
+```
+
+Get information from World Development Indicators:
+
+- Gross Domestic Product
+- Population
+
+Countries have an uneven talent pool (India has a population of 1.4 billion but Saint Kitts and Nevis has 52,000 people), so it may be useful to use a measure that weights athletes and medals by population (athletes/medals per 10k people?)
+
+```{r}
+#WDIsearch("gdp") # use this function to find variables, there's a lot
+
+# total population
+# gdp in constant 2010 dollars, overall and by capita
+# I think by capita is a better measure
+
+wdi <- WDI(indicator = c("SP.POP.TOTL", "NY.GDP.MKTP.KD", "NY.GDP.PCAP.KD", "SI.POV.GINI"),
+           country = "all",
+           start = 1960, 
+           end = 2021) %>%
+  filter(iso2c != "  ") # remove regions/continents that don't have a county code (double space for some reason)
+
+head(wdi)
+```
+
+## Standardize countries
+
+Noticing here that the team does not always correspond to the country: sometimes there's a boat club that competes for a country, or Belarus, Belarus-1, Belarus-2, etc. It would be best to go off of the IOC (International Olympic Committee) country codes and names. Unfortunately these are three letter codes which do not correspond to the World Bank's iso2c codes. The IOC codes also change over time. :(
+
+Fortunately there's a robust crosswalk of major country codes and names (FIFA code, country names in French/Spanish, etc.)
+
+```{r}
+# read in crosswalk
+
+codes <- read_csv("https://datahub.io/core/country-codes/r/country-codes.csv") %>%
+  clean_names() %>%
+  select(iso = iso3166_1_alpha_2,
+         ioc,
+         country = official_name_en)
+
+head(codes)
+```
+
+```{r}
+# append ioc code to WDI dataframe
+# This won't work with continents and regions, but we're not using those anyways
+wdi2 <- wdi %>%
+  left_join(codes %>% select(-country), by = c("iso2c" = "iso")) %>%
+  rename(population = SP.POP.TOTL,
+         gdp = NY.GDP.MKTP.KD,
+         gdp_pc = NY.GDP.PCAP.KD,
+         gini = SI.POV.GINI)
+```
+
+
+## Create summary data
+
+I don't care much about individuals at this point, so I'm going to create a summary data frame with the country, year, and count of athletes and medals.
+
+Joining summarize data with WDI by year. This lets us add appropriate population and wealth measures, in case there is significant change in either over time.
+
+```{r}
+oly <- olympics %>%
+  group_by(noc, games, year) %>%
+  summarize(athletes = n_distinct(id), # count athletes by unique id instead of by rows (don't double count)
+            medals = sum(!is.na(medal)),
+            gold = sum(medal == "Gold", na.rm = TRUE)) %>%
+  left_join(wdi2, by = c("noc" = "ioc", "year"))
+
+# inspect countries that aren't matched (like Soviet Union, East Germany)
+
+oly %>%
+  filter(is.na(country)) %>%
+  group_by(noc) %>%
+  summarize(across(c(athletes:gold), sum)) %>% # use across to summarize all three columns
+  arrange(desc(athletes))
+```
+
+I think it's okay to exclude large countries that do not exist anymore (Soviet Union, East Germany), as long as we are doing analyses by year.
+
+## Create measures
+
+Useful measures that scale athletes and medals by population (per million residents).
+
+```{r}
+oly2 <- oly %>%
+  filter(!is.na(country)) %>% # remove unmatched older countries
+  mutate(athletes_pp = athletes / (population / 1000000),
+         medals_pp = medals / (population / 1000000),
+         gold_pp = gold / (population / 1000000),
+         gold_winning = gold / athletes)
+```
+
+## Visualize
+
+Top countries for 2016:
+
+```{r}
+oly2 %>%
+  filter(games == "2016 Summer") %>%
+  group_by(country) %>%
+  summarize(across(c(athletes:gold), sum)) %>%
+  arrange(desc(athletes))
+```
+
+
+Showing athletes by year, with a line for each country. This messy visual demonstrates that we should separate winter from summer Olympics (consistently less athletes).
+
+```{r}
+oly2 %>%
+  ggplot(aes(x = year, y = athletes, group = country)) +
+    geom_line(alpha = 0.3) +
+    labs(title = "Number of Athletes for Summer Olympics")
+```
+
+Looks much better. We can highlight some of the top countries to see growth over time.
+
+```{r}
+oly_summ <- oly2 %>%
+  filter(str_detect(games, "Summer"))
+
+oly_summ %>%
+  ggplot(aes(x = year, y = athletes, group = country, color = country)) +
+    geom_line(alpha = 0.5) +
+    gghighlight(country %in% c("United States", "Brazil", "Australia", "Germany", "China")) +
+    labs(title = "Number of Athletes for Summer Olympics")
+```
+
+The weighted variable for athletes looks very different.
+
+```{r}
+oly_summ %>%
+  ggplot(aes(x = year, y = athletes_pp, group = country, color = country)) +
+    geom_line(alpha = 0.5) +
+    gghighlight(country %in% c("United States", "Brazil", "Australia", "Germany", "China")) +
+    labs(title = "Number of Athletes (Per 1 million) for Summer Olympics")
+```
+
+Island nations with smaller populations (under 30,000) get very high per population measures because the denominator is quite small. San Marino at some point had 800 athletes per million people, while the US tends to have around 1 or 2. I could let these outliers define the analysis, or just exclude them.
+
+```{r}
+oly_summ %>%
+  ggplot(aes(x = year, y = athletes_pp, group = country, color = country)) +
+    geom_line(alpha = 0.5) +
+    gghighlight(country %in% c("United States", "San Marino", "Liechtenstein", "Cayman Islands", "Palau")) +
+    labs(title = "Number of Athletes (Per 1 million) for Summer Olympics")
+```
+
+We can temporarily exclude any countries that have an average population (over time) under 500,000.
+
+```{r}
+oly_summ2 <- oly_summ %>%
+  group_by(noc, country) %>%
+  mutate(mean_pop = mean(population)) %>%
+  filter(mean_pop >= 500000) %>%
+  ungroup()
+
+oly_summ2 %>%
+  ggplot(aes(x = year, y = athletes_pp, group = country, color = country)) +
+    geom_line(alpha = 0.5) +
+    gghighlight(country %in% c("United States", "Brazil", "Australia", "Germany", "China")) +
+    labs(title = "Number of Athletes (Per 1 million) for Summer Olympics")
+```
+
+## Athletes Per Capita
+
+It would be interested to see what's the ranking for athletes per population for the last 10 years of summer games.
+
+```{r, fig.height=12, fig.width=7}
+top_athletes_pp <- oly_summ2 %>%
+  filter(year >= 1980) %>%
+  group_by(country) %>%
+  summarize(avg_athletes_pp = mean(athletes_pp),
+            pop = min(population)) %>%
+    # calculate average athletes per capita since 1980
+  arrange(desc(avg_athletes_pp)) %>%
+  slice(1:50) # get top
+
+top_athletes_pp %>%
+  ggplot(aes(x = avg_athletes_pp, y = reorder(country, avg_athletes_pp),
+             fill = avg_athletes_pp)) +
+    geom_col() +
+    labs(y = "", x = "Athletes Per Capita",
+         title = "Who has the most Olympic athletes relative to their population?",
+         subtitle = "Average Athletes Per Capita for Summer Olympics (since 1980)") +
+    scale_fill_viridis_c() #+
+    #theme(legend.position = "none",
+    #     axis.text.y = element_text(face = if_else(top_athletes_pp$pop > 100000000, "bold", "italic")))
+```
+
+Interesting that the top countries in terms of total medals (USA, China, Brazil, Australia) do not show up in the top 50 in terms of most athletes per population. Some evidence that the number of athletes is driven a lot by population.
+
+What's the relationship between population and medals though?
+
+```{r}
+oly_summ2 %>%
+  filter(year >= 1980) %>%
+  ggplot(aes(x = population, y = medals)) +
+    geom_point() +
+    geom_smooth(method = "lm", se = FALSE) +
+    labs(title = "Relationship between population and medals (1980-2016)")
+
+cor(oly_summ2$population, oly_summ2$medals)
+```
+
+Not a very strong correlation between population and medals. Each country will show up multiple times, since this is years 1980-2016. I'm assuming the outliers to the right are India (large population, some medals) and China (large population, above average amount of medals).
+
+## Gold winning-ness
+
+```{r, fig.height=8, fig.width=7}
+oly_summ2 %>%
+  filter(year >= 1980) %>%
+  group_by(country) %>%
+  summarize(gold_winning = mean(gold_winning),
+            pop = min(population)) %>%
+    # calculate average athletes per capita since 1980
+  arrange(desc(gold_winning)) %>%
+  slice(1:25) %>% # get top
+  ggplot(aes(x = gold_winning, y = reorder(country, gold_winning),
+             fill = gold_winning)) +
+    geom_col() +
+    labs(y = "", x = "Gold Medals relative to Athletes",
+         title = "Who has the highest Gold winningness?",
+         subtitle = "Average Gold Medals Relative to Athletes for Summer Olympics (since 1980)") +
+    scale_fill_viridis_c() +
+    scale_x_continuous(labels = scales::percent_format(accuracy = 1)) +
+    theme(legend.position = "none")
+```
+
+
+## Relationship between Olympics presence and wealth
+
+Using all countries, we can see the relationship between athletes (per capita) and GDP (per capita).
+
+```{r}
+oly_summ %>%
+  filter(year == 2016) %>%
+  mutate(outlier = if_else(gdp_pc > 75000 | athletes_pp > 100, 1, 0)) %>%
+    # label outliers with either a high gdp or high amount of athletes
+  ggplot(aes(x = athletes_pp, y = gdp_pc)) +
+    geom_point() +
+    gghighlight(outlier == 1, label_key = country) +
+    labs(title = "Olympic Athletes and Country Wealth",
+         x = "Athletes Per 1 million", y = "GDP Per Capita")
+```
+
+This is interesting, but with all of these small island outliers, we can't see the disparities between high and low GDP countries.
+
+```{r}
+oly_summ2 %>%
+  filter(year == 2016) %>%
+  mutate(outlier = if_else(gdp_pc > 50000 | athletes_pp > 20, 1, 0)) %>%
+  ggplot(aes(x = athletes_pp, y = gdp_pc, color = athletes_pp)) +
+    geom_point() +
+    gghighlight(outlier == 1, label_key = country) +
+    labs(title = "Olympic Athletes and Country Wealth (2016 Summer Olympics)",
+         subtitle = "Nations with Population > 500,000",
+         x = "Athletes Per 1 million", y = "GDP Per Capita") +
+    scale_color_viridis_c() +
+    theme(legend.position = "none")
+
+oly_summ2 %>%
+  filter(year == 2016) %>%
+  ggplot(aes(x = athletes_pp, y = gdp_pc, color = athletes_pp)) +
+    geom_point() +
+    geom_smooth(method = "lm", se = FALSE, color = "gold") +
+    labs(title = "Olympic Athletes and Country Wealth (2016 Summer Olympics)",
+         subtitle = "Nations with Population > 500,000",
+         x = "Athletes Per 1 million", y = "GDP Per Capita") +
+    scale_color_viridis_c() +
+    theme(legend.position = "none")
+
+oly_summ2 %>%
+  cor_test(athletes_pp, gdp_pc)
+```
+
+It seems like there are clusters of countries: 1) ones with high GDP that have relatively high (but not very high) amounts of athletes (United States, Denmark, Norway, Switzerland, Qatar). Actually the United States has relatively few athletes compared to its population. 2) countries with above average but not high GDP with above average athletes (New Zealand, Fiji, Slovenia, Croatia). 3) lots of countries with low GDP that are not sending that many athletes relative to their population.
+
+### Medals and wealth
+
+Let's look at the number of gold medals per population compared to GDP. Fiji remains an outlier - they won a gold medal at the 2016 Olympics, and have both a small population and low GDP. 
+
+It may be less valuable to look at golds per population, since every year the number of athletes fluctuates. Maybe we can look at the gold winning percentage - total gold for the year divided by the number of athletes sent?
+
+```{r}
+oly_summ2 %>%
+  filter(year == 2016,
+         country != "Fiji") %>%
+  mutate(outlier = if_else(gdp_pc > 50000 | gold_pp > 1, 1, 0)) %>%
+  ggplot(aes(x = gold_pp, y = gdp_pc, color = gold_pp)) +
+    geom_point() +
+    gghighlight(outlier == 1, label_key = country) +
+    labs(title = "Olympic Gold and Country Wealth (2016 Summer Olympics)",
+         subtitle = "Nations with Population > 500,000",
+         x = "Gold Medals Per 1 million", y = "GDP Per Capita") +
+    scale_color_viridis_c() +
+    theme(legend.position = "none")
+
+oly_summ2 %>%
+  #filter(year == 2016) %>%
+  filter(year >= 1980,
+         country != "Fiji") %>%
+  ggplot(aes(x = gold_pp, y = gdp_pc, color = gold_pp)) +
+    geom_point() +
+    geom_smooth(method = "lm", se = FALSE, color = "gold") +
+    labs(title = "Olympic Gold and Country Wealth (1980-2016)",
+         subtitle = "Nations with Population > 500,000",
+         x = "Medals Per 1 million", y = "GDP Per Capita") +
+    scale_color_viridis_c() +
+    theme(legend.position = "none")
+
+oly_summ2 %>% 
+  filter(year >= 1980,
+         country != "Fiji") %>%
+  cor_test(gold_pp, gdp_pc)
+```
+
+Here we can see a decent but not strong (.3) correlation between Olympic gold (gold medals per population) and country wealth (GDP per capita), looking at the Olympics from 1980-2016.
+
+## Olympics presence and inequality
+
+The issue with GDP per capita is that it does not show inequality. A country could have a large population but a very small amount of elites who have the wealth and resources to recruit and train for the Olympics. Zimbabwe is an example of this: in the 2021 Olympics, this country had its first Black Zimbabwean swimmer, although 99.6% of the population is Black, of African origin.
+
+The Gini coefficient is an established measure of income inequality, and could shed light into whether countries with more inequality tend to do better at Olympics. On the coefficient 0 means perfect equality, while 100 is perfect inequality.
+
+```{r}
+oly_summ2 %>%
+  filter(year == 2016) %>%
+  ggplot(aes(x = athletes_pp, y = gini, color = athletes_pp)) +
+    geom_point() +
+    geom_smooth(method = "lm", se = FALSE, color = "gold") +
+    labs(title = "Olympic Athletes and Inequality (2016 Summer Olympics)",
+         subtitle = "Nations with Population > 500,000",
+         x = "Athletes Per 1 million", y = "Gini Coefficient") +
+    scale_color_viridis_c() +
+    theme(legend.position = "none")
+
+oly_summ2 %>%
+  filter(year == 2016) %>%
+  mutate(outlier = if_else(gini > 47 | athletes_pp > 20, 1, 0)) %>%
+  ggplot(aes(x = athletes_pp, y = gini, color = athletes_pp)) +
+    geom_point() +
+    gghighlight(outlier == 1, label_key = country) +
+    labs(title = "Olympic Athletes and Inequality (2016 Summer Olympics)",
+         subtitle = "Nations with Population > 500,000",
+         x = "Athletes Per 1 million", y = "Gini Coefficient") +
+    scale_color_viridis_c() +
+    theme(legend.position = "none")
+
+oly_summ2 %>%
+  filter(year >= 1980) %>%
+  cor_test(gini, athletes_pp)
+```
+
+Interestingly there is a medium negative relationship (-.5 correlation) between inequality and Olympic participation. Countries with higher equality tend to send more participants to the Olympics (from the example in 2016, and looking at the correlation across Olympics 1980-2016).
+
+## Gold and inequality
+
+```{r}
+oly_summ2 %>%
+  filter(year == 2016) %>%
+  ggplot(aes(x = gold_pp, y = gini, color = gold_pp)) +
+    geom_point() +
+    geom_smooth(method = "lm", se = FALSE, color = "gold") +
+    labs(title = "Olympic Gold and Inequality (2016 Summer Olympics)",
+         subtitle = "Nations with Population > 500,000",
+         x = "Gold Medals Per 1 million", y = "Gini Coefficient") +
+    scale_color_viridis_c() +
+    theme(legend.position = "none")
+
+oly_summ2 %>%
+  filter(year == 2016) %>%
+  mutate(outlier = if_else(gini > 47 | gold_pp > 1, 1, 0)) %>%
+  ggplot(aes(x = gold_pp, y = gini, color = gold_pp)) +
+    geom_point() +
+    gghighlight(outlier == 1, label_key = country) +
+    labs(title = "Olympic Gold and Inequality (2016 Summer Olympics)",
+         subtitle = "Nations with Population > 500,000",
+         x = "Gold Medals Per 1 million", y = "Gini Coefficient") +
+    scale_color_viridis_c() +
+    theme(legend.position = "none")
+
+oly_summ2 %>%
+  filter(year >= 1980) %>%
+  cor_test(gini, gold_pp)
+```
+
+The relationship between gold medals and inequality is less strong and clear (-.3 correlation), likely because many countries do not get gold medals in every Olympics.
