@@ -4,13 +4,13 @@ My contributions to R4DS Online Learning Community's [#TidyTuesday event](https:
 
 ## Olympics
 
-![Olympics](https://github.com/bamattre/tidytuesday/blob/master/tidytuesday_2021-07-27_olympics_athletes_wealth.png)
+![Olympics](https://github.com/bamattre/tidytuesday/blob/master/images/tidytuesday_2021-07-27_olympics_athletes_wealth.png)
 
-Olympic Athletes, Gold medals, and national wealth and inequality: [Full Report](https://htmlpreview.github.io/?https://github.com/bamattre/tidytuesday/blob/master/tidytuesday_2021-07-27_olympics.html)
+Olympic Athletes, Gold medals, and national wealth and inequality: [Full Report](https://htmlpreview.github.io/?https://github.com/bamattre/tidytuesday/blob/master/images/tidytuesday_2021-07-27_olympics.html)
 
 ## Netflix Movies (Python)
 
-![Netflix Movies](https://github.com/bamattre/tidytuesday/blob/master/2021-04-20%20netflix%20movies.png)
+![Netflix Movies](https://github.com/bamattre/tidytuesday/blob/master/images/2021-04-20%20netflix%20movies.png)
 
 ## Toronto Shelters
 
