@@ -26,6 +26,8 @@ Olympic Athletes, Gold medals, and national wealth and inequality: [Full Report]
 
 ## Great American Beer Festival
 
+This visual and code was [explored by Patrick Ward and Ellis Hughes in their TidyX video series](https://www.youtube.com/watch?v=j0gj438orbs).
+
 ![Beer](https://github.com/bamattre/tidytuesday/blob/master/images/2020-10-20%20beer.png)
 
 ## Datasaurus
