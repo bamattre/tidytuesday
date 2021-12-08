@@ -2,6 +2,12 @@
 
 My contributions to R4DS Online Learning Community's [#TidyTuesday event](https://github.com/rfordatascience/tidytuesday)
 
+## Mario Kart 64 Records
+
+![Mario Kart 64 Records](https://github.com/bamattre/tidytuesday/blob/master/images/2021-05-25%20mario%20kart%2064.png)
+
+[Article about Beck 'abney317' Abney](https://kotaku.com/mario-kart-64-speedrunner-sets-new-world-record-by-repe-1846254228)
+
 ## US Infrastructure
 
 ![US Infrastructure](https://github.com/bamattre/tidytuesday/blob/master/images/2021-08-13_infrastructure.png)
