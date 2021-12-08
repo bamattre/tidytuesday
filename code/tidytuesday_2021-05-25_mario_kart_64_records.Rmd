@@ -1,0 +1,235 @@
+---
+title: Tidy Tuesday - Mario Kart 64 World Records
+author: Richard Bamattre
+date: "2021-12-07"
+output: html_notebook
+---
+
+**Purpose**
+
+Explore the Mario Kart 64 World Records dataset
+
+https://github.com/rfordatascience/tidytuesday/blob/master/data/2021/2021-05-25/readme.md
+
+
+```{r setup}
+## Load libraries
+
+# read
+library(tidytuesdayR)
+
+# wrangle
+library(tidyverse)
+library(lubridate)
+library(janitor)
+library(tidytext)
+
+# viz
+library(highcharter) # easy interactive visuals
+library(ggthemes) # ggplot themes
+library(ggtext) # html/markdown styling ggplot text
+
+# model
+
+# export
+
+## Custom functions
+```
+
+# Read
+
+```{r read}
+tuesdata <- tidytuesdayR::tt_load('2021-05-25')
+
+driv <- tuesdata$drivers
+
+rec <- tuesdata$records
+```
+
+# Wrangle
+
+```{r wrangle}
+# add a cumulative sum
+
+driv2 <- driv %>%
+  group_by(player) %>%
+  mutate(roll_total = cumsum(coalesce(records, 0)))
+```
+
+# Explore
+
+## Drivers
+
+```{r}
+driv2 %>%
+  filter(position < 25) %>% # get top 25 players
+  ggplot(aes(x = year, y = roll_total, color = player)) +
+    geom_line(alpha = 0.5)
+```
+
+Hard to see who is who. An interactive chart would be better, trying out the highcharter library, a wrapper for the highcharts JS library. Splines look nice than lines.
+
+```{r}
+driv2 %>%
+  filter(position < 25) %>%
+  hchart("spline", hcaes(x = year, y = roll_total, group = player),
+         marker = FALSE) %>%
+  hc_legend(enabled = FALSE) # remove legend
+```
+
+Nice, but a lot of unneccessary data ink when players reach their peak record count and stay there (horizontal line)
+
+```{r}
+driv2 %>%
+  filter(roll_total != lead(roll_total), # remove rows that have the same cumulative total on the next line (peaked)
+         position < 25) %>%
+  hchart("spline", hcaes(x = year, y = roll_total, group = player),
+         marker = FALSE) %>%
+  hc_legend(enabled = FALSE)
+```
+
+I'd be interesting to see the record progression all aligned, i.e. at the first year where someone had a record.
+
+```{r}
+driv2 %>%
+  filter(roll_total != lead(roll_total)) %>%
+  filter(max(roll_total) >= 25) %>% # only show players who eventually got a certain amount of records
+  mutate(years = year - min(year)) %>%
+  hchart("spline", hcaes(x = years, y = roll_total, group = player),
+         marker = FALSE) %>%
+  hc_legend(enabled = FALSE)
+```
+
+## Records
+
+What does a single track record history look like? How could we visualize it?
+
+```{r, fig.width=8, fig.height=8}
+rec %>%
+  filter(track == "Rainbow Road") %>%
+  ggplot(aes(x = date, y = time)) +
+    geom_line(size = 2, alpha = 0.5) +
+    geom_point(aes(color = player)) +
+    facet_wrap(~ type + shortcut) +
+    theme(legend.position = "bottom")
+```
+
+Shortcuts seem to help more with three lap races. There was some extra shortcuts or techniques in the 2020s that were exploited, lowering the time significantly. Seems only to be the case for a few tracks.
+
+```{r}
+rec %>%
+  filter(type == "Three Lap",
+         shortcut == "Yes") %>%
+  ggplot(aes(x = date, y = time, color = track)) +
+    geom_line()
+```
+## Exploring individual racers
+
+Penev is number one ranked in terms of records, but this person did most of their records in the 2000s. How long did their records stay for?
+
+It may be useful to narrow the field. What kind of records did Penev have?
+
+```{r}
+rec %>%
+  filter(player == "Penev") %>%
+  group_by(type, shortcut) %>%
+  summarize(records = n(),
+            avg_duration = mean(record_duration, na.rm = TRUE)) %>%
+  arrange(desc(records))
+```
+
+Much of them for non-shortcuts, single and three laps. Three lap non-shortcut seemed to be the most competitive, in terms of lower record duration. Their records for three lap shortcut held up for much longer.
+
+It would be interesting to see where a single player's records hold up in terms of the date and time in seconds. We could do this manually, or would could create a custom function to visualize for any player
+
+```{r, fig.width=8, fig.height=5}
+player.viz <- function(player.name) {
+  
+  rec %>%
+    mutate(player_col = if_else(player == !!player.name, !!player.name, "_Others")) %>%
+    ggplot(aes(x = date, y = time, group = track)) +
+      geom_line(aes(color = player_col)) +
+      facet_wrap(~ type + shortcut, scales = "free") +
+      scale_color_manual(values = c("gray", "red")) +
+      labs(title = paste0("Records for ", player.name), color = "")
+  
+}
+
+player.viz("Penev")
+player.viz("MR")
+player.viz("abney317")
+```
+
+Read more about abney317's unconventional speedrunning methods here: https://kotaku.com/mario-kart-64-speedrunner-sets-new-world-record-by-repe-1846254228
+
+This may be an interesting visualization, focusing on recent record breakthroughs in shortcut three lap races by abney317
+
+```{r}
+# get top 10 ranked players (besides abney317)
+
+top10 <- driv %>%
+  distinct(player, position) %>%
+  filter(player != "abney317",
+         position <= 10) %>%
+  pull(player)
+
+plot <- rec %>%
+  group_by(track, type, shortcut) %>%
+  mutate(pct_change = (time - max(time)) / max(time)) %>%
+  mutate(rec_type = case_when(track %in% c("Choco Mountain", "Rainbow Road",
+                                         "Toad's Turnpike", "Luigi Raceway") ~ "Tracks with smashed record times",
+                            TRUE ~ "Tracks with incremental but leading progress to record times")) %>%
+  filter(type == "Three Lap",
+         shortcut == "Yes",
+         !track %in% c("Sherbet Land", "Royal Raceway", "Wario Stadium")) %>%
+  mutate(player_col = case_when(player == "abney317" ~ "abney317", 
+                                player %in% top10 ~ "Top 10 Ranked Players",
+                                TRUE ~ "Everyone Else")) %>%
+  ggplot(aes(x = date, y = pct_change, group = track, color = player_col)) +
+    geom_line(alpha = 0.5, size = 3) +
+    geom_point(size = 2, shape = 15)
+
+plot
+```
+Censoring the data, but having the record start at 0 makes more sense.
+
+```{r, fig.height=10, fig.width = 5}
+plot +
+    facet_wrap(~ track, ncol = 1) +
+    theme(legend.position = "bottom") +
+    labs(title = "",
+         color = "") +
+    scale_y_continuous(labels = scales::percent_format(),
+                       breaks = c(0, -.5)) +
+    coord_cartesian(xlim = c(as.Date("2010-01-01"), max(rec$date))) # zoom in without excluding data
+```
+```{r, fig.width=8, fig.height=6}
+plot2 <- plot +
+    facet_wrap(~ rec_type, ncol = 1) +
+    labs(title = "abney317's Unconventional Mario Kart 64 Playing Style",
+         subtitle = "Each line represents the record for a single track, three lap w/ shortcuts",
+         caption = "<span style='color:#049CD8'>**abney317's**</span> record breaking looks very different from the typical incremental progress<br>by the <span style='color:#E52521'>**top 10 ranked players**</span> due to the discovery of new techniques and glitches.",
+         color = "", x = "", y = "Percent Change from First Record") +
+    scale_y_continuous(labels = scales::percent_format(),
+                       breaks = c(0, -.5)) +
+    theme_fivethirtyeight() +
+    theme(legend.position = "bottom", axis.title.y = element_text(),
+          plot.caption = element_markdown()) +
+    scale_color_manual(values = c("#049CD8", "gray", "#E52521"))
+
+ggsave("2021-05-25 mario kart 64.png", plot2, width = 8, height = 6, dpi = 150,
+       bg = "#F0F0F0")
+```
+
+
+# Model
+
+```{r model}
+
+```
+
+# Export
+
+```{r export}
+
+```
