@@ -2,6 +2,10 @@
 
 My contributions to R4DS Online Learning Community's [#TidyTuesday event](https://github.com/rfordatascience/tidytuesday)
 
+## London Animal Rescues
+
+![London Animal Rescues](https://github.com/bamattre/tidytuesday/blob/master/images/2020-06-29_animal_rescue_london.png)
+
 ## Mario Kart 64 Records
 
 ![Mario Kart 64 Records](https://github.com/bamattre/tidytuesday/blob/master/images/2021-05-25%20mario%20kart%2064.png)
