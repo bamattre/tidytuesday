@@ -1,0 +1,327 @@
+---
+title: Tidy Tuesday - Animal Rescues
+author: Richard Bamattre
+date: "2021-12-07"
+output: html_notebook
+---
+
+**Purpose**
+
+https://github.com/rfordatascience/tidytuesday/blob/master/data/2021/2021-06-29/readme.md
+
+
+```{r setup}
+## Load libraries
+
+# read
+library(tidytuesdayR)
+
+# wrangle
+library(tidyverse)
+library(lubridate)
+library(janitor)
+library(tidytext)
+
+# viz
+library(ggthemes) # ggplot themes
+library(ggtext) # html/markdown styling ggplot text
+library(extrafont)
+library(gridExtra)
+library(grid)
+
+# model
+library(sf) # simple features for GIS and mapping
+
+# Necessary if there are issues of no font name loading in extrafont
+# https://stackoverflow.com/questions/61204259/how-can-i-resolve-the-no-font-name-issue-when-importing-fonts-into-r-using-ext
+#remotes::install_version("Rttf2pt1", version = "1.3.8")
+
+# export
+
+## Custom functions
+
+#font_import(paths = "C:/Windows/Fonts") # load fonts for the first time, takes a few minutes
+
+extrafont::loadfonts(device = "win") # 
+
+# set working directory to wherever the RMD is located
+setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
+```
+
+# Read
+
+```{r read}
+tuesdata <- tidytuesdayR::tt_load('2021-06-29')
+
+ani <- tuesdata$animal_rescues
+```
+
+# Wrangle
+
+```{r wrangle}
+ani2 <- ani %>%
+  mutate(across(is.character, ~ na_if(.x, "NULL"))) %>% # turn NULLs into NA
+  mutate(date_time_of_call = mdy_hm(date_time_of_call)) %>% # make into datetime
+  mutate(across(latitude:longitude, as.numeric)) # convert coordinates to numeric
+```
+
+# Explore
+
+What kind of info is in animal group?
+
+```{r}
+table(ani2$animal_group_parent)
+
+# cat in two categories. What's a budgie?
+
+ani3 <- ani2 %>%
+  mutate(animal_group_parent = factor(animal_group_parent) %>%
+           recode(cat = "Cat", # change values
+                  Budgie = "Bird",
+                  Pigeon = "Bird",
+                  Lamb = "Sheep",
+                  Bull = "Cow"))
+
+table(ani3$animal_group_parent)
+```
+
+How many records have coordinates?
+
+```{r}
+sum(!is.na(ani3$latitude)) / nrow(ani3)
+```
+Can we use the UK postcode instead?
+
+```{r}
+sum(!is.na(ani3$postcode_district)) / nrow(ani3)
+```
+
+Import dataset of UK postcodes, get district postcodes
+
+```{r}
+uk_pc <- read_csv("ONSPD_MAY_2016_UK.csv")
+
+# just get postcode district, not sector or unit
+# https://en.wikipedia.org/wiki/Postcodes_in_the_United_Kingdom#Postcode_district
+
+uk_pc2 <- uk_pc %>%
+  separate(pcd2, into = c("postcode_district", "pcd_2nd_half")) %>%
+    # get district postcode out - however we'll have multiple lat/lon for each
+  group_by(postcode_district) %>%
+  summarize(lat = mean(lat), # summarize average - not perfect method
+            long = mean(long))
+
+ani4 <- ani3 %>%
+  left_join(uk_pc2 %>% select(postcode_district, lat, long), by = "postcode_district")
+
+# how accurate are these when we know the specific lat/long?
+
+ani4 %>%
+  filter(!is.na(latitude),
+         latitude > 0) %>%
+  mutate(lat_error = latitude - lat,
+         long_error = longitude - long) %>%
+  ggplot() +
+    geom_density(aes(lat_error), color = "red") +
+    geom_density(aes(long_error), color = "blue")
+
+# One degree of lat/lon is about 69 miles, so most aren't far off.
+# I think the average lat/lon by postal code district is okay for a rough map
+```
+
+# Model
+
+Ideas: make a map of animals by type
+
+```{r model}
+ani_geo <- ani4 %>%
+  st_as_sf(coords = c("long", "lat"))
+
+plot(ani_geo["ward"])
+```
+
+```{r, fig.width=8, fig.height=8}
+ani_geo %>%
+  filter(animal_group_parent %in% c("Bird", "Cat", "Dog", "Fox", "Deer", "Horse"),
+         ) %>%
+  ggplot(aes(color = animal_group_parent)) +
+    geom_sf() +
+    theme(legend.position = "bottom")
+```
+
+
+Points may be hard. Get polygons for London postal codes
+
+```{r}
+pc_geo <- read_sf("https://raw.githubusercontent.com/sjwhitworth/london_geojson/master/london_postcodes.json")
+
+plot(pc_geo["Name"])
+```
+
+```{r}
+ani_geo2 <- ani4 %>%
+  left_join(pc_geo, by = c("postcode_district" = "Name")) %>% # join based on pc district
+  st_as_sf() # convert to sf object
+
+plot(ani_geo2["ward_code"])
+```
+
+Now that we have polygons containing multiple incidents, we could probably summarize.
+
+```{r}
+# summarize using non-geo tibble, then add the geometry (otherwise get errors)
+# right join here since there are 14 postal districts without data
+
+ani_geo_sum <- ani4 %>%
+  count(postcode_district, animal_group_parent) %>%
+  right_join(pc_geo, by = c("postcode_district" = "Name")) %>%
+  st_as_sf()
+
+ani_geo_sum %>%
+  filter(animal_group_parent == "Fox") %>%
+  ggplot(aes(fill = n)) +
+    geom_sf(color = NA) +
+    theme_map() +
+    labs(title = "Fox rescues in London") +
+    scale_fill_viridis_b()
+
+ani_geo_sum %>%
+  filter(animal_group_parent == "Cat") %>%
+  ggplot(aes(fill = n)) +
+    geom_sf(color = NA) +
+    theme_map() +
+    labs(title = "Cat rescues in London") +
+    scale_fill_viridis_b()
+```
+
+Most common animal rescue for each postal district?
+
+```{r}
+ani_geo_sum2 <- ani4 %>%
+  count(postcode_district, animal_group_parent) %>%
+  group_by(postcode_district) %>%
+  arrange(postcode_district, desc(n)) %>%
+  slice(1) %>%
+  droplevels() %>%
+    # since animal group parent is still a factor, drop empty values
+  right_join(pc_geo, by = c("postcode_district" = "Name")) %>%
+  st_as_sf() %>%
+  mutate(animal2 = case_when(is.na(n) ~ "No rescues",
+                             TRUE ~ as.character(animal_group_parent)))
+
+table(ani_geo_sum2$animal2)
+
+ani_geo_sum2 %>%
+  ggplot() +
+    geom_sf(aes(fill = animal2), color = NA) +
+    theme_map() +
+    labs(fill = "Most common animal",
+         title = "Animal rescues in London, 2009-2021") +
+    scale_fill_brewer(type = "qual", palette = 2) +
+    theme(legend.position = "right")
+```
+
+Interesting first stab, but lacks nuance. Are all those areas 90% cat or 55%? 
+
+National Geographic's predominant race map does a great job of amounts in categories
+https://flowingdata.com/2018/10/12/mapping-predominant-race-block-by-block/
+
+```{r}
+ani_geo_sum3 <- ani4 %>%
+  count(postcode_district, animal_group_parent) %>%
+  group_by(postcode_district) %>%
+  mutate(total = sum(n)) %>% # calculate total rescues
+  mutate(perc = n / total) %>% # get percent
+  filter(!animal_group_parent %in% c("Cat", "Dog")) %>%
+  arrange(postcode_district, desc(perc)) %>%
+  slice(1) %>%
+  droplevels() %>%
+    # since animal group parent is still a factor, drop empty values
+  right_join(pc_geo, by = c("postcode_district" = "Name")) %>%
+  st_as_sf() %>%
+  mutate(animal2 = case_when(is.na(n) ~ "No rescues",
+                             animal_group_parent == "Unknown - Heavy Livestock Animal" ~
+                               "Heavy Livestock Animal",
+                             TRUE ~ as.character(animal_group_parent)),
+         perc = if_else(animal2 == "No rescues", 1, perc))
+
+table(ani_geo_sum3$animal2)
+
+ani_geo_sum3 %>%
+  ggplot(aes(y = animal2, x =  perc, fill = animal2)) +
+    geom_boxplot() +
+    geom_jitter(alpha = 0.5, aes(color = animal2)) +
+    scale_fill_brewer(type = "qual", palette = 2) +
+    scale_color_brewer(type = "qual", palette = 2)
+```
+
+
+```{r}
+# hue by animal, but brightness percent (dominance)
+
+# set font
+font = "Bahnschrift"
+
+# change theme
+theme_map2 <- theme_map() +
+  theme(text = element_text(family = font))
+
+theme_set(theme_map2)
+
+# get better colors
+# calc from ggthemes is nice, but has two greens and blues,
+# won't work with shading
+
+# pull out 7 colors
+
+pal <- calc_pal()(6)
+
+# change no rescues color
+
+pal[6] <- "#5b5b5b" #"#ffffff"
+
+scales::show_col(pal)
+
+# change heavy livestock animal color
+
+p <- ani_geo_sum3 %>%
+  ggplot() +
+    geom_sf(aes(fill = animal2, alpha = rev(perc)), color = NA) +
+    #theme_map2() +
+    labs(fill = "Most common animal",
+         caption = "Color by most common animal, shaded by its prevalence",
+         alpha = "Prevalence") +
+    scale_fill_manual(values = pal) +
+    scale_alpha_continuous(labels = scales::percent_format()) +
+    theme(legend.position = "left")
+
+p
+
+# save plot
+
+
+# bring together the plots
+
+g <- arrangeGrob(p,
+                 top = textGrob("No dogs or cats: Other animal rescues in London, 2009-2021", 
+                                gp = gpar(fontfamily = font,
+                                          fontface = "bold",
+                                          col = "black",
+                                          hjust = 0,
+                                          cex = 1.2)),
+                 bottom = textGrob("Tidy Tuesday | @rbamattre | Source: London.gov", 
+                                   gp = gpar(fontfamily = font,
+                                             col = "black",
+                                             hjust = 0,
+                                             cex = 0.8)))
+
+ggsave("2020-06-29_animal_rescue_london.png", g, width = 8, height = 6, dpi = 150,
+       bg = "white")
+```
+
+
+# Export
+
+```{r export}
+
+```
