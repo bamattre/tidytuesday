@@ -2,6 +2,10 @@
 
 My contributions to R4DS Online Learning Community's [#TidyTuesday event](https://github.com/rfordatascience/tidytuesday)
 
+## Board Game Ratings
+
+![Board Game Ratings](https://github.com/bamattre/tidytuesday/blob/master/images/2022-01-25%20board%20games.png)
+
 ## London Animal Rescues
 
 ![London Animal Rescues](https://github.com/bamattre/tidytuesday/blob/master/images/2020-06-29_animal_rescue_london.png)
