@@ -1,0 +1,297 @@
+---
+title: Tidy Tuesday - Animal Rescues
+author: Richard Bamattre
+date: "2022-02-25"
+output: html_notebook
+---
+
+**Purpose**
+
+https://github.com/rfordatascience/tidytuesday/blob/master/data/2022/2022-01-25/readme.md
+
+
+```{r setup}
+## Load libraries
+
+# read
+library(tidytuesdayR)
+
+# wrangle
+library(tidyverse) # yup
+library(lubridate) # work with dates
+library(janitor) # clean up names + nice tables
+
+# viz
+library(ggthemes) # ggplot themes
+library(ggtext) # html/markdown styling ggplot text
+library(extrafont) # use more fonts in ggplot
+
+# model
+
+
+# Necessary if there are issues of no font name loading in extrafont
+# https://stackoverflow.com/questions/61204259/how-can-i-resolve-the-no-font-name-issue-when-importing-fonts-into-r-using-ext
+#remotes::install_version("Rttf2pt1", version = "1.3.8")=
+
+# export
+
+## Custom functions
+
+#font_import(paths = "C:/Windows/Fonts") # load fonts for the first time, takes a few minutes
+
+extrafont::loadfonts(device = "win") # 
+
+# set working directory to wherever the RMD is located
+setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
+```
+
+# Read
+
+```{r read}
+tuesdata <- tidytuesdayR::tt_load('2022-01-25')
+
+rat <- tuesdata$ratings
+deet <- tuesdata$details
+```
+
+What factors predict most accurately a highly ranked game?
+
+Helpful if ratings are normally distributed.
+
+```{r}
+rat %>%
+  ggplot(aes(average)) +
+    geom_histogram(bins = 100)
+
+rat %>%
+  ggplot(aes(bayes_average)) +
+    geom_histogram(bins = 100)
+
+# difference between average and bayes average?
+
+rat %>%
+  mutate(diff = average - bayes_average) %>%
+  ggplot(aes(diff)) +
+    geom_histogram(bins = 100)
+```
+
+# Wrangle
+
+We need to pull out some of these lists into variables. If we're productionizing a model, we'd use a pipeline. Since it's a simple exercise, let's clean in R (easier for me to quickly) and then use scikit learn in Python to model.
+
+```{r wrangle}
+# number of distinct categories/families - this includes combinations though
+n_distinct(deet$boardgamecategory)
+n_distinct(deet$boardgamefamily) # way too many families to use!
+
+deet2 <- deet %>%
+  mutate(category = str_remove_all(boardgamecategory, "\\[|\\]|'")) %>%
+  separate_rows(category, sep = ",") %>%
+  mutate(category = str_squish(category),
+         value = 1) %>%
+  select(id, primary, yearpublished:minage, category, value) # select key features
+
+n_distinct(deet2$category) # 85 distinct categories, that's a lot
+
+# Turn into wide data - each category will be a column
+# This isn't tidy, but it allows cluster analysis, modeling, etc.
+
+deet3 <- deet2 %>%
+  pivot_wider(names_from = "category", values_from = "value") %>%
+  mutate(age = 2021 - yearpublished) %>%
+  select(-yearpublished) %>%
+  select(id, primary, age, everything()) %>%
+  mutate(across(Medical:`Fan Expansion`, ~ replace_na(.x, 0))) %>%
+  left_join(rat %>% select(id, average), by = "id")
+```
+
+# Cluster analysis
+
+Can we create some higher level categories?
+
+```{r}
+library(FactoMineR)
+library(factoextra)
+
+# get just numeric category variables
+cat <- deet3 %>% select(Medical:`Fan Expansion`)
+
+# hierarchical clustering - takes way too long
+# hclust <- hclust(dist(cat))
+
+# kmeans
+set.seed(123)
+
+km <- kmeans(cat, 12)
+
+# to much data to visualize
+#fviz_cluster(km, data = cat)
+
+# visualize centers
+
+km_centers <- km$centers %>% 
+  as_tibble %>%
+  rownames_to_column("cluster") %>%
+  mutate(cluster = as.numeric(cluster)) %>%
+  pivot_longer(-cluster, names_to = "category", values_to = "means")
+
+km_centers %>%
+  filter(means > .05) %>%
+  arrange(cluster, desc(means)) %>%
+  ggplot(aes(y = category, x = means, fill = factor(cluster))) +
+    geom_col() +
+    facet_wrap(~ cluster, scales = "free_y")
+  
+# PCA - principal component analysis
+pca <- PCA(cat, ncp = 40, graph = FALSE)
+
+# FactoMineR is nice because it's easy to pull out the result objects
+pca
+
+pca$eig
+
+fviz_eig(pca, ncp = 40)
+```
+# Label categories
+
+```{r}
+clust <- tibble(cluster = km$cluster) %>%
+  mutate(category = case_when(cluster == 1 ~ "Modern Wargame",
+                              cluster == 2 ~ "Misc",
+                              cluster == 3 ~ "Children's game",
+                              cluster == 4 ~ "Party card game",
+                              cluster == 5 ~ "Economic",
+                              cluster == 6 ~ "Card game",
+                              cluster == 7 ~ "Science fiction",
+                              cluster == 8 ~ "Medieval",
+                              cluster == 9 ~ "Ancient",
+                              cluster == 10 ~ "Abstract puzzle",
+                              cluster == 11 ~ "Action game",
+                              cluster == 12 ~ "Classical wargame")) %>%
+  bind_cols(deet3 %>% select(id:minage)) %>%
+  left_join(rat, by = "id")
+
+table(clust$category)
+
+# Check top rated games in each category
+
+clust %>%
+  group_by(category) %>%
+  arrange(desc(users_rated)) %>%
+  slice(1:5)
+```
+
+## Explore categories
+
+```{r}
+library(ggridges)
+
+theme_set(theme_minimal())
+
+clust %>%
+  ggplot(aes(y = fct_reorder(category, average, mean), 
+            # really useful function - reorder category based on the mean of average
+             x = average, fill = stat(x))) +
+    geom_density_ridges_gradient() +
+    scale_fill_viridis_c() +
+    labs(y = "", x = "Average Rating") +
+    theme(legend.position = "none")
+
+clust %>%
+  ggplot(aes(y = fct_reorder(category, age, mean),
+             x = age, fill = stat(x))) +
+    geom_density_ridges_gradient() +
+    scale_fill_viridis_c() +
+    scale_x_continuous(limits = c(0, 50))
+
+clust %>%
+  ggplot(aes(y = fct_reorder(category, minage, mean),
+             x = minage, fill = stat(x))) +
+    geom_density_ridges_gradient() +
+    scale_fill_viridis_c()
+
+clust %>%
+  ggplot(aes(y = fct_reorder(category, users_rated, mean),
+             x = users_rated, fill = stat(x))) +
+    geom_density_ridges_gradient() +
+    scale_fill_viridis_c() +
+    scale_x_continuous(limits = c(0, 500))
+```
+
+```{r}
+clust %>%
+  filter(age < 100) %>%
+  ggplot(aes(x = age, y = average)) +
+    geom_jitter(alpha = 0.1, shape = 16) +
+    geom_smooth()
+
+clust %>%
+  ggplot(aes(x = users_rated, y = average)) +
+    geom_jitter(alpha = 0.1, shape = 16)
+```
+
+```{r}
+library(ggimage)
+
+# set font
+font = "Bahnschrift"
+
+high_rank <- clust %>%
+  group_by(category) %>%
+  mutate(avg_score = mean(average, na.rm = TRUE)) %>%
+  arrange(rank) %>%
+  slice(1)
+
+high_rank %>%
+  ggplot(aes(x = average, y = reorder(category, avg_score))) +
+    geom_point(aes(x = avg_score), shape = 15, color = "blue") +
+    geom_image(aes(image = thumbnail), size = .1) +
+    geom_text(aes(label = primary, x = average + .5), 
+              size = 3, hjust = 0, alpha = 0.5) +
+    scale_x_continuous(limits = c(5, 11)) +
+    labs(title = "Highest ranked board games by category",
+         x = "Average Rating", y = "") +
+    annotate("text", x = 6.8, y = 12, hjust = 1,
+             label = "Category average rating", color = "blue",
+             family = font, size = 4) +
+    theme(text = element_text(family = font))
+```
+
+Overrated games - most user ratings while the average rating is below one standard deviation of the category mean
+
+```{r}
+overrate <- clust %>%
+  group_by(category) %>%
+  mutate(avg_score = mean(average, na.rm = TRUE),
+         sd_score = sd(average, na.rm = TRUE)) %>%
+  filter(average < avg_score - sd_score) %>%
+  arrange(desc(users_rated)) %>%
+  slice(1)
+
+# combine data into one chart
+
+g <- overrate %>%
+  ggplot(aes(x = average, y = reorder(category, avg_score))) +
+    geom_point(aes(x = avg_score), shape = 1, color = "orangered",
+               size = 2) +
+    geom_image(aes(image = thumbnail), size = .1) +
+    geom_text(aes(label = primary, x = average - .6), 
+              size = 2.5, hjust = 1, alpha = 0.5) +
+    geom_image(data = high_rank, aes(image = thumbnail), size = .1) +
+    geom_text(data = high_rank, aes(label = primary, x = average + .6), 
+              size = 2.5, hjust = 0, alpha = 0.5) +
+    scale_x_continuous(limits = c(2, 12),
+                       breaks = c(2, 4, 6, 8, 10)) +
+    labs(title = "Highest rated and overrated games by category",
+         subtitle = "@rbamattre - Source: BoardGameGeek",
+         x = "Average Rating", y = "") +
+    #annotate("text", x = 7.2, y = 12, hjust = 0,
+    #         label = "Category average rating", color = "blue",
+    #         family = font, size = 4) +
+    theme(text = element_text(family = font))
+
+g
+
+ggsave("2022-01-25 board games.png", g, width = 8, height = 6, dpi = 150,
+       bg = "white")
+```
