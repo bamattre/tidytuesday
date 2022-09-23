@@ -2,6 +2,10 @@
 
 My contributions to R4DS Online Learning Community's [#TidyTuesday event](https://github.com/rfordatascience/tidytuesday)
 
+## Ferris Wheels
+
+![Ferris Wheels](https://github.com/bamattre/tidytuesday/blob/master/images/tidytuesday_2022-08-09_ferris_wheels.png)
+
 ## Board Game Ratings
 
 ![Board Game Ratings](https://github.com/bamattre/tidytuesday/blob/master/images/2022-01-25%20board%20games.png)
