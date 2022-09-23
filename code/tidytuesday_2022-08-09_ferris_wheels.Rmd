@@ -1,0 +1,188 @@
+---
+title: Tidy Tuesday Ferris Wheels
+author: Richard Bamattre
+date: "2022-09-01"
+output: html_notebook
+---
+
+**Purpose**
+
+
+
+**Description**
+
+
+
+**Data Sources**
+
+
+
+*Other Notes*
+
+
+
+*Change log*
+
+
+```{r setup}
+## Load libraries
+
+# read
+library(tidytuesdayR)
+
+# wrangle
+library(tidyverse) # key packages - remove if not using
+library(lubridate)
+library(janitor)
+library(DataExplorer) # missing plots
+library(Amelia) # more missing plots
+
+# viz
+library(ggforce) # ggplot2 addons, like a circle
+library(ggimage)
+
+# model
+
+# export
+
+## Custom functions
+```
+
+# Read
+
+```{r}
+data <- tt_load("2022-08-09")$wheels
+
+# construction cost has Unknown, set to NA
+
+data2 <- data %>%
+  select(-`...1`) %>%
+  mutate(construction_cost = if_else(construction_cost == "Unknown", NA_character_,
+                                     construction_cost),
+         height = if_else(name == "Nippon Moon", 377, height)) # fill in one missing height
+```
+
+# Wrangle
+
+Lots of missing data
+
+```{r wrangle}
+plot_missing(data2)
+
+Amelia::missmap(data2)
+```
+
+# Explore
+
+Years?
+
+```{r}
+data2 %>%
+  ggplot(aes(x = opened, y = height)) +
+    geom_point()
+```
+
+
+Relation between height and diameter?
+
+```{r}
+data2 %>%
+  ggplot(aes(height, diameter)) +
+    geom_point() +
+    geom_smooth(method = "lm")
+
+data2 %>%
+  select(where(is.numeric)) %>%
+  cor(use = "pairwise.complete.obs") %>%
+  corrplot::corrplot()
+
+lm <- lm(diameter ~ height, data = data2)
+
+data2$pred_diameter = round(predict(lm, newdata = data2), 2)
+
+data2 %>%
+  ggplot(aes(diameter, pred_diameter)) +
+    geom_point() +
+    geom_smooth(method = "lm")
+```
+
+```{r}
+data3 <- data2 %>%
+  mutate(diameter2 = coalesce(diameter, pred_diameter),
+         rank = dense_rank(desc(height)),
+         decade = year(opened) - year(opened) %% 5)
+
+tallest <- data3 %>%
+  filter(!is.na(decade)) %>%
+  group_by(decade) %>%
+  arrange(decade, desc(height)) %>%
+  slice(1) %>%
+  ungroup() %>%
+  mutate(yrank = dense_rank(decade))
+```
+
+# Viz
+
+```{r, fig.width = 20, fig.height = 3}
+img <- magick::image_read("https://designlooter.com/images/statue-svg-1.png")
+
+
+g <- tallest %>%
+  ggplot() +
+  annotation_raster(img, xmin = 200, xmax = 500, ymin = 0, ymax = 305) +
+  geom_segment(aes(x = (-(height - diameter2 / 2) / 2) + yrank * 500, xend = yrank * 500,
+                   yend = height - diameter2 / 2, y = 0, color = country),
+               size = 3) +
+  geom_segment(aes(x = ((height - diameter2 / 2) / 2) + yrank * 500, xend =  + yrank * 500,
+                   yend = height - diameter2 / 2, y = 0, color = country),
+               size = 3) +
+  geom_circle(aes(x0 = yrank * 500, y0 = height - diameter2 / 2, r = diameter2 / 2,
+                  fill = country)) +
+  geom_circle(aes(x0 = yrank * 500, y0 = height - diameter2 / 2, r = diameter2 / 15),
+              fill = "white") +
+  #facet_wrap(~ decade + name, nrow = 1) +
+  geom_text(aes(x = yrank * 500, y = -100, label = decade)) +
+  geom_label(aes(x = yrank * 500, y = 0, label = name,
+                 fill = country), show.legend = FALSE) +
+  theme_minimal() +
+  theme(legend.position = "bottom",
+        axis.text.x = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        panel.grid.major.x = element_blank(),
+        panel.grid.major.y = element_line(color = "#9FB8AD"),
+        panel.grid.minor.y = element_line(color = "#CED0CE"),
+        plot.background = element_rect(fill = "#E6E8E6")) +
+  scale_fill_brewer(type = "qual", palette = 2) +
+  scale_color_brewer(type = "qual", palette = 2) +
+  labs(y = "", x = "", fill = "", title = "We haven't ended world hunger, but we sure have built bigger ferris wheels") +
+  guides(color = "none", fill = guide_legend(nrow = 1))
+
+ggsave("tidy_tuesday_ferris_wheels.png", g, width = 20, height = 3)
+```
+
+
+Not much success with images - can't scale them correctly to sit on the ground.
+
+```{r}
+tallest2 <- tallest %>%
+  mutate(image = "https://cdn2.iconfinder.com/data/icons/miscellaneous-ii-glyph-style/150/ferris-wheel-512.png")
+
+tallest2 %>%
+  ggplot(aes(x = 0, y = height - diameter2 / 2)) +
+    geom_image(aes(image = image, color = factor(country),
+                   size = I(height / 500)), by = "height") +
+    facet_wrap(~ name)
+```
+
+
+# Model
+
+```{r model}
+
+```
+
+# Export
+
+```{r export}
+
+```
