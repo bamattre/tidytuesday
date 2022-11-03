@@ -2,6 +2,10 @@
 
 My contributions to R4DS Online Learning Community's [#TidyTuesday event](https://github.com/rfordatascience/tidytuesday)
 
+## Cryptic Crosswords
+
+![Cryptic Crosswords](https://github.com/bamattre/tidytuesday/blob/master/images/crossword_thumb.jpg)
+
 ## Ferris Wheels
 
 ![Ferris Wheels](https://github.com/bamattre/tidytuesday/blob/master/images/tidytuesday_2022-08-09_ferris_wheels.png)
