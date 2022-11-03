@@ -1,0 +1,188 @@
+---
+title: Tidy Tuesday Crosswords
+author: Richard Bamattre
+date: "2022-07-08"
+output: html_notebook
+---
+
+**Purpose**
+
+
+
+**Description**
+
+
+
+**Data Sources**
+
+
+
+*Other Notes*
+
+
+
+*Change log*
+
+
+```{r setup}
+## Load libraries
+
+# read
+library(tidytuesdayR)
+
+# wrangle
+library(tidyverse) # key packages - remove if not using
+library(lubridate)
+library(janitor)
+
+# model
+library(tidytext) # text mining
+
+# viz
+library(reactable) # interactive tables
+library(reactablefmtr) # formatting/fonts for reactable
+
+# export
+
+## Custom functions
+```
+
+# Read
+
+```{r}
+data <- tt_load("2022-04-19")
+
+dave <- data$big_dave
+
+times <- data$times
+```
+
+# Explore
+
+```{r}
+dave %>%
+  ggplot(aes(puzzle_date)) +
+    geom_histogram()
+
+times %>%
+  ggplot(aes(puzzle_date)) +
+    geom_histogram()
+```
+
+
+# Wrangle
+
+```{r wrangle}
+comb <- rbind(dave, times) %>%
+  mutate(answer2 = str_remove_all(answer, "[[:punct:] ]+"), 
+          # remove punctuation, spaces
+         length = nchar(answer2), # get the answer length
+         clue = str_remove_all(clue, " \\([^)]*\\)"), # remove word length
+         cons = answer2 %>% str_remove_all("[aeiouAEIOU]") %>% nchar(), 
+          # calculate consonants
+         vowels = length - cons) %>% # use that to calc vowels
+  filter(!is.na(answer2), # remove blank answers ("see 7 down" etc)
+         length > 1) # remove one letter answers (?)
+```
+
+Some words show up a lot, compared to others
+
+```{r}
+comb %>%
+  tabyl(answer2) %>%
+  arrange(desc(n))
+```
+
+```{r, fig.width=8, fig.height=7}
+comb %>%
+  filter(length <= 10) %>%
+  count(length, answer2) %>%
+  group_by(length) %>%
+  arrange(desc(n)) %>%
+  slice(1:10) %>%
+  ggplot(aes(y = reorder(answer2, n), x = n, fill = length)) +
+    geom_col() +
+    facet_wrap(~ length, scales = "free") +
+    labs(title = "Most common answers by length", x = "", y = "") +
+    theme(legend.position = "none")
+```
+
+# Text mining
+
+```{r}
+text <- comb %>%
+  select(rowid, answer2, clue) %>%
+  unnest_tokens(word, clue) %>%
+  anti_join(stop_words) # remove stop words
+
+# see the most common word in the clues associated with an answer
+
+top_words <- text %>%
+  group_by(answer2) %>%
+  count(word) %>%
+  arrange(desc(n)) %>%
+  slice(1)
+
+top_words %>%
+  filter(n > 50)
+```
+
+
+# Model
+
+```{r model}
+words <- comb %>%
+  group_by(answer2, length, cons, vowels) %>%
+  summarize(times = n()) %>%
+  ungroup() %>%
+  left_join(top_words, by = "answer2") %>%
+  mutate(vowel_ratio = vowels / length)
+
+# most common 5+ words with lots of vowels, with the most frequent clue word
+
+final <- words %>%
+  filter(vowel_ratio > .66,
+         length >= 4) %>%
+  arrange(desc(times)) %>%
+  select(Answer = answer2,
+         `Most common clue word` = word,
+         Frequency = times,
+         Letters = length,
+         `Percent vowels` = vowel_ratio) %>%
+  mutate(`Percent vowels` = round(`Percent vowels`, digits = 3))
+```
+
+# Interactive table
+
+```{r}
+cw_table <- 
+  reactable(final,
+            theme = nytimes(),
+            defaultSorted = list("Frequency" = "desc"),
+            searchable = TRUE,
+            columns = list(
+              Frequency = colDef(
+                style = color_scales(final)
+              ),
+              `Percent vowels` = colDef(
+                cell = data_bars(final,
+                                 text_position = "above",
+                                 number_fmt = scales::percent_format(),
+                                 text_color = "gray",
+                                 max_value = 1)
+              )
+            )) %>%
+  google_font("Roboto Mono") %>%
+  add_title("Most common crossword answers with lots of vowels (4+ words)")
+
+cw_table
+
+save_reactable_test(cw_table, "cw_table.html")
+```
+
+
+# Export
+
+```{r export}
+
+```
