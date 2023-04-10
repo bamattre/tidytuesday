@@ -1,0 +1,342 @@
+---
+title: Tidy Tuesday LEGO
+author: Richard Bamattre
+date: "2023-01-01"
+output: html_notebook
+---
+
+**Purpose**
+
+
+
+**Description**
+
+
+
+**Data Sources**
+
+
+
+*Other Notes*
+
+
+
+*Change log*
+
+
+```{r setup}
+## Load libraries
+
+# read
+library(tidytuesdayR)
+
+# wrangle
+library(tidyverse) # key packages - remove if not using
+library(lubridate)
+library(janitor)
+
+# viz
+library(ggthemes)
+library(magick)
+library(extrafont)
+
+# model
+
+# export
+
+## Custom functions
+
+loadfonts()
+```
+
+# Read
+
+From rebrickable
+
+The schema from here is useful: https://rebrickable.com/downloads/
+
+```{r}
+#tuesdata <- tt_load('2022-09-06')
+
+# getting some issue with vroom
+
+inventories <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2022/2022-09-06/inventories.csv.gz')
+
+inventory_sets <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2022/2022-09-06/inventory_sets.csv.gz')
+
+sets <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2022/2022-09-06/sets.csv.gz')
+
+themes <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2022/2022-09-06/themes.csv.gz')
+
+inv_parts <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2022/2022-09-06/inventory_parts.csv.gz')
+
+colors <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2022/2022-09-06/colors.csv.gz') %>%
+  mutate(hex = paste0("#", rgb))
+
+```
+
+# Explore
+
+I think inventories are used to connect the sets with the parts. I'm not sure I need to get that granular at the moment.
+
+```{r}
+summary(sets)
+```
+
+```{r}
+sets |> 
+  filter(num_parts == 0)
+```
+
+Games and other products are 0 part sets
+
+```{r}
+sets2 <- sets |> 
+  filter(num_parts > 0) |> 
+  left_join(themes |> rename(theme = name), join_by(theme_id == id)) %>%
+  left_join(themes |> rename(parent_theme = name) |> 
+              select(-parent_id),
+            join_by(parent_id == id)) |> 
+  mutate(overall_theme = coalesce(parent_theme, theme))
+
+sets2
+```
+
+```{r}
+tabyl(sets2, overall_theme) |> 
+  arrange(desc(n)) |> 
+  adorn_pct_formatting()
+```
+
+```{r}
+sets2 |> 
+  ggplot(aes(x = year, y = num_parts)) +
+    geom_jitter(alpha = 0.4, stroke = NA) +
+    geom_smooth()
+```
+
+```{r}
+sets2 |> 
+  arrange(desc(num_parts)) |> 
+  head(n = 100)
+```
+
+Get the most common themes (top 25?)
+
+```{r}
+top_25 <- sets2 |> 
+  group_by(overall_theme) |> 
+  summarize(sets = n_distinct(set_num)) |> 
+  arrange(desc(sets)) |> 
+  slice(1:10)
+
+top_25
+```
+
+```{r}
+sets2 |> 
+  filter(overall_theme %in% top_25$overall_theme) |> 
+  group_by(overall_theme, year) |> 
+  summarize(sets = n_distinct(set_num),
+            avg_parts = mean(num_parts)) |> 
+  ggplot(aes(x = year, y = sets, fill = overall_theme)) +
+    geom_col(
+      #position = "fill"
+      ) +
+    scale_fill_ptol()
+```
+
+```{r}
+sets2 |> 
+  filter(overall_theme %in% top_25$overall_theme) |> 
+  group_by(overall_theme, year) |> 
+  summarize(sets = n_distinct(set_num),
+            avg_parts = mean(num_parts)) |> 
+  ggplot(aes(x = year, y = avg_parts, fill = overall_theme)) +
+    geom_col(
+      #position = "fill"
+      ) +
+    scale_fill_ptol() +
+    facet_wrap(~ overall_theme) +
+    theme(legend.position = "none")
+```
+
+```{r}
+sets2 %>%
+  filter(overall_theme == "Service Packs")
+```
+
+```{r}
+sets2 %>%
+  filter(overall_theme == "Educational and Dacta")
+
+image_read(sets2[51,]$img_url) |> print() # print the picture for that row
+
+
+
+image_read(sets2$img_url[sets2$set_num == "970608-1"]) |> print()
+```
+
+
+# Wrangle
+
+Add parts + Colors
+
+```{r wrangle}
+sets_parts <- sets2 %>%
+  left_join(inventories, join_by(set_num),
+            multiple = "all") %>%
+  left_join(inv_parts %>%
+              rename(part_img_url = img_url), 
+            join_by(id == inventory_id),
+            multiple = "all") %>%
+  left_join(colors %>%
+              rename(color_name = name), join_by(color_id == id))
+```
+
+```{r}
+# get picture for a set (even if there's multiple rows per parts)
+
+#image_read(sets_parts[sets_parts$set_num == '31120-1',][1,]$img_url) |> print()
+# this is odd base R subsetting
+```
+
+
+# Color graph function
+
+Create a function that, when inputted any set number, will map the colors used
+
+```{r}
+library(treemapify)
+
+plot.set <- function(sets, type = "bar", show = "name") {
+  
+  # filter the data to that set
+  
+  set_data <- sets_parts %>%
+    filter(set_num %in% sets)
+  
+  if (show == "theme") {
+    
+    set_data <- set_data %>%
+      mutate(name = overall_theme)
+    
+  }
+  
+  # summarize the number of parts per color in that set
+  
+  set_colors <- set_data %>%
+    group_by(set_num, name, year, color_id) %>%
+    summarize(parts = n_distinct(part_num),
+              hex = min(hex), .groups = "drop") %>%
+    arrange(desc(parts)) %>%
+    mutate(row = row_number())
+  
+  # create a named vector of color values
+  
+  color_vals <- as.character(set_colors$hex)
+  names(color_vals) <- as.character(set_colors$color_id)
+  
+  # plot!
+  
+  if (type == "bar") {
+  
+    set_colors |> 
+      ggplot(aes(x = 1, y = parts, fill = as.factor(color_id))) +
+        geom_bar(stat = "identity") +
+        coord_flip() +
+        scale_fill_manual(values = color_vals) +
+        theme_minimal() + 
+        theme(legend.position = "none",
+              axis.text = element_blank(),
+              axis.title = element_blank(),
+              panel.grid = element_blank(),
+              panel.background = element_rect(fill = "gray", color = NA)) +
+        facet_wrap(~ name, scales = "free")
+    
+  }
+  
+  else if (type == "tree") {
+    
+    set_colors |> 
+      ggplot(aes(area = parts, fill = as.factor(color_id))) +
+        geom_treemap() +
+        scale_fill_manual(values = color_vals) +
+        theme_minimal() + 
+        theme(legend.position = "none",
+              axis.text = element_blank(),
+              axis.title = element_blank(),
+              panel.grid = element_blank()) +
+        facet_wrap(~ name, scales = "free")
+    
+  }
+  
+  else if (type == "pie") {
+    
+    set_colors |> 
+      ggplot(aes(x = "", y = parts, fill = as.factor(color_id))) +
+        geom_col(color = "lightgray") +
+        coord_polar(theta = "y") +
+        scale_fill_manual(values = color_vals) +
+        theme_minimal() + 
+        theme(legend.position = "none",
+              axis.text = element_blank(),
+              axis.title = element_blank(),
+              panel.grid = element_blank()) +
+        facet_wrap(~ name)
+    
+  }
+
+}
+```
+
+```{r}
+top_sets <- sets2 %>%
+  arrange(desc(num_parts)) %>%
+  slice(1:10) %>%
+  pull(set_num)
+
+plot.set(top_sets, type = "bar")
+
+plot.set(top_sets, type = "tree")
+
+plot.set(top_sets, type = "pie") # scaling doesn't work but pies are not great anyways
+```
+
+Get an example from popular themes - set with most parts
+
+```{r}
+themes <- sets2 %>%
+  group_by(overall_theme) %>%
+  mutate(sets = n_distinct(set_num)) %>%
+  filter(num_parts == max(num_parts)) %>% # get the biggest set per theme
+  ungroup() %>%
+  arrange(desc(sets)) %>%
+  slice(1:30)
+```
+
+```{r}
+p <- plot.set(themes$set_num, type = "tree", show = "theme") +
+  labs(title = "LEGO colors for set with the most parts, by category",
+       caption = "Tidy Tuesday | @rbamattre | Source: rebrickable") +
+  theme(text = element_text(family = "Bahnschrift"), legend.position = "none")
+
+p
+
+ggsave("2022-09-06 lego.png", p, device = "png", dpi = 150,
+       width = 8, height = 6, bg = "white")
+```
+
+
+
+# Model
+
+```{r model}
+
+```
+
+# Export
+
+```{r export}
+
+```
