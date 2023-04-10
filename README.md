@@ -2,6 +2,10 @@
 
 My contributions to R4DS Online Learning Community's [#TidyTuesday event](https://github.com/rfordatascience/tidytuesday)
 
+## LEGO
+
+![LEGO](https://github.com/bamattre/tidytuesday/blob/master/images/2022-09-06%20lego.png)
+
 ## [Cryptic Crosswords](https://bamattre.github.io/crossword/)
 
 ![Cryptic Crosswords](https://github.com/bamattre/tidytuesday/blob/master/images/crossword_thumb.jpg)
