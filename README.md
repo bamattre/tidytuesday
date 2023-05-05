@@ -2,6 +2,10 @@
 
 My contributions to R4DS Online Learning Community's [#TidyTuesday event](https://github.com/rfordatascience/tidytuesday)
 
+## Plants in Danger
+
+![Plants in Danger](https://github.com/bamattre/tidytuesday/blob/master/images/2020-08-18_plants_in_danger_final_rb.jpg)
+
 ## LEGO
 
 ![LEGO](https://github.com/bamattre/tidytuesday/blob/master/images/2022-09-06%20lego.png)
