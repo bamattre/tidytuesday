@@ -1,0 +1,278 @@
+---
+title: Tidy Tuesday - Plants in Danger
+author: Richard Bamattre
+date: "2023-01-01"
+output: html_notebook
+---
+
+**Purpose**
+
+
+
+**Description**
+
+
+
+**Data Sources**
+
+
+
+*Other Notes*
+
+
+
+*Change log*
+
+
+```{r setup}
+## Load libraries
+
+# read
+library(tidytuesdayR)
+
+# explore
+
+# wrangle
+library(tidyverse) # key packages - remove if not using
+library(lubridate)
+library(janitor)
+
+# model
+
+# viz
+library(biscale)
+library(cowplot)
+library(hrbrthemes)
+
+#extrafont::font_import() # install new fonts
+extrafont::loadfonts(device = "win")
+
+# export
+
+## Custom functions
+
+# If not using a project, set the working directory to where the markdown
+# script is located:
+
+setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
+```
+
+# Read
+
+```{r read}
+tuesdata <- tt_load("2020-08-18")
+
+plants <- tuesdata$plants
+
+threats <- tuesdata$threats
+
+actions <- tuesdata$actions
+```
+
+# Initial cleaning
+
+The plants dataframe is in wide/untidy format, while threats and actions are long/tidy. Threats and action are sparse datasets, meaning threats and actions that are not relevant to a plant are included but coded as zero.
+
+Let's make these less sparse by remove those zeroes.
+
+```{r}
+threats2 <- threats |> 
+  filter(threatened == 1) |> 
+  select(-threatened)
+
+actions2 <- actions |> 
+  filter(action_taken == 1) |> 
+  select(-action_taken)
+```
+
+# Explore
+
+Let's look at the data using crosstables to see what variables and categories look like, what may be related.
+
+```{r explore}
+tabyl(threats2, continent)
+```
+
+```{r}
+tabyl(threats2, group)
+```
+
+```{r}
+tabyl(threats2, red_list_category)
+```
+
+```{r}
+tabyl(threats2, threat_type) |> 
+  arrange(desc(n))
+```
+
+```{r}
+threats2 |> 
+  count(country, threat_type) |> 
+  arrange(desc(n))
+```
+
+
+## Get world data
+
+May be interesting to see a map, for exploration or the final plot.
+
+Load in world data
+
+```{r}
+bkg_color <- "#f5ebe0"
+
+# summarize per country
+
+threats_country <- threats2 |> 
+  group_by(country) |> 
+  summarize(threats = n_distinct(binomial_name))
+
+# new for me - ggplot function to get a map of the world
+
+world <- map_data("world") |> 
+  filter(region != "Antarctica")
+
+# use geom_map because we can map and visualize data without having to combine
+
+g <- ggplot() +
+  geom_map(data = world, map = world, aes(long, lat, map_id = region),
+           fill = bkg_color) + # base map
+  geom_map(data = threats_country, map = world,
+           aes(fill = threats, map_id = country)) + # color filled map on top
+  coord_quickmap() + # quickly use a standard projection
+  scale_fill_viridis_c() +
+  labs(title = "Threats to plants per country") +
+  theme_void() +
+  theme(text = element_text(family = "IBM Plex Sans"))
+
+g
+```
+
+## Correlations
+
+```{r}
+corrplot::corrplot(cor(plants[,6:23]))
+```
+
+It would be interesting to visualize the types of threats impacting plants. But currently it's a pretty high dimensionality (lots of different threats). Would a PCA be useful here?
+
+```{r}
+pca <- prcomp(plants[,6:16]) # only threats and remove NA
+
+summary(pca)
+```
+
+```{r}
+factoextra::fviz_eig(pca)
+```
+
+```{r}
+factoextra::fviz_pca_var(pca)
+```
+
+Natural Systems Modifications + Biological Resources Use; Commercial Development + Agriculture and Aquaculture
+
+Apparently we can't specify the number of principal components? So we can do a factor analysis
+
+```{r}
+fact <- factanal(plants[,6:16], 2, scores = "Bartlett")
+
+summary(fact)
+```
+
+```{r}
+fact$loadings
+```
+
+```{r}
+plants2 <- plants |> 
+  cbind(fact$scores)
+```
+
+Factor 1: Climate change, geological events (less agriculture, biological resource use)
+Factor 2: Commercial development, pollution, human intrusions, transportation corridor
+
+```{r}
+ggplot(data = plants2, aes(x = Factor1, y = Factor2, color = continent)) +
+  geom_point()
+```
+
+
+## Bivariate map
+
+Now we have two overlapping factors to visualize. Can we use bivarate mapping to do this?
+
+https://cran.r-project.org/web/packages/biscale/vignettes/biscale.html
+
+Scores are at plant level, any better way to summarize this besides a mean?
+
+```{r}
+country_data <- plants2 |> 
+  group_by(country) |> 
+  summarize(Factor1 = mean(Factor1),
+            Factor2 = mean(Factor2))
+```
+
+
+```{r}
+bi_data <- bi_class(country_data, 
+                    x = Factor1, y = Factor2, style = "quantile", dim = 3)
+```
+
+```{r}
+b <- ggplot() +
+  geom_map(data = world, map = world, aes(long, lat, map_id = region),
+           fill = "white") + # base map
+  geom_map(data = bi_data, map = world,
+           aes(fill = bi_class, map_id = country),
+           show.legend = FALSE) + # color filled map on top
+  coord_quickmap() + # quickly use a standard projection
+  bi_scale_fill(pal = "DkViolet2", dim = 3) +
+  labs(title = "Threats to plant species") +
+  theme_void() +
+  theme(plot.title = element_text(hjust = 0.5, color = "#9b2226",
+                                  family = "IBM Plex Sans SemiBold"),
+        text = element_text(family = "IBM Plex Sans"),
+        plot.background = element_rect(bkg_color, color = NA))
+
+legend <- bi_legend(pal = "DkViolet2",
+                    dim = 3,
+                    xlab = "Climate change threats",
+                    ylab = "Industrial threats",
+                    size = 6) +
+  theme(text = element_text(family = "IBM Plex Sans"),
+        plot.background = element_rect(fill = bkg_color, color = NA),
+        panel.background = element_rect(fill = bkg_color, color = NA))
+
+# cowplot allows us to draw multiple plots on a single canvas
+
+final <- ggdraw() +
+  draw_plot(b, 0, 0, 1, 1) +
+  draw_plot(legend, 0, .1, 0.3, 0.3) +
+  draw_text("Tidy Tuesday | @rbamattre | Source: IUCN Red List of Threatened Spcies (2020)", size = 8, x = .98, y = 0.05, hjust = 1, family = "IBM Plex Sans")
+
+final
+
+ggsave(plot = last_plot(), device = "png", dpi = 200, bg = bkg_color,
+       width = 8, height = 5,
+       filename = "2020-08-18_plants_in_danger_final_rb.png")
+```
+
+# Wrangle
+
+```{r wrangle}
+
+```
+
+# Model
+
+```{r model}
+
+```
+
+# Export
+
+```{r export}
+
+```
