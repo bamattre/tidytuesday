@@ -42,7 +42,7 @@ My contributions to R4DS Online Learning Community's [#TidyTuesday event](https:
 
 ![Olympics](https://github.com/bamattre/tidytuesday/blob/master/images/tidytuesday_2021-07-27_olympics_athletes_wealth.png)
 
-Olympic Athletes, Gold medals, and national wealth and inequality: [Full Report](https://htmlpreview.github.io/?https://github.com/bamattre/tidytuesday/blob/master/images/tidytuesday_2021-07-27_olympics.html)
+Olympic Athletes, Gold medals, and national wealth and inequality: [Full Report](https://htmlpreview.github.io/?https://github.com/bamattre/tidytuesday/blob/master/tidytuesday_2021-07-27_olympics.html)
 
 ## Netflix Movies (Python)
 
