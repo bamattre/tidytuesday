@@ -2,6 +2,10 @@
 
 My contributions to R4DS Online Learning Community's [#TidyTuesday event](https://github.com/rfordatascience/tidytuesday)
 
+## US Droughts
+
+![U.S. Droughts](https://github.com/bamattre/tidytuesday/blob/master/images/us_droughts_rb.jpg)
+
 ## Plants in Danger
 
 ![Plants in Danger](https://github.com/bamattre/tidytuesday/blob/master/images/2020-08-18_plants_in_danger_final_rb.jpg)
