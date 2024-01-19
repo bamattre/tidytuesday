@@ -1,0 +1,200 @@
+---
+title: Tidy Tuesday - US Droughts
+author: Richard Bamattre
+date: "2023-12-29"
+output: html_notebook
+---
+
+**Purpose**
+
+**Description**
+
+**Data Sources**
+
+*Other Notes*
+
+*Change log*
+
+```{r setup}
+## Load libraries
+
+# read
+library(tidytuesdayR)
+
+# explore
+
+# wrangle
+library(tidyverse) # key packages - remove if not using
+library(lubridate)
+
+# viz
+library(extrafont)
+
+# model
+
+# export
+
+## Custom functions
+
+loadfonts()
+
+# If not using a project, set the working directory to where the markdown
+# script is located:
+
+#setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
+```
+
+# Read
+
+```{r read}
+dr <- tt_load('2021-07-20')$drought
+```
+
+# Explore
+
+```{r explore}
+min(dr$valid_start); max(dr$valid_start)
+```
+
+```{r}
+dr |> 
+  group_by(state_abb) |> 
+  summarize(rows = n())
+```
+```{r}
+dr |> 
+  filter(stat_fmt == 1) # we only have categorical data?
+```
+
+
+```{r}
+dr |> 
+  filter(state_abb == "CA",
+         valid_start >= "2020-01-01") |> 
+  ggplot(aes(x = valid_start, y = area_pct, group = state_abb, color = drought_lvl)) +
+    geom_line() +
+    facet_wrap(~ drought_lvl) +
+    guides(color = "none")
+```
+
+For a given year, each state would have weekly? values for None, Drought Levels 0-4
+
+```{r}
+# define a drought color palette
+
+colfunc <- colorRampPalette(c("#ED9654", "#1E2E3C"))
+
+colfunc(5)
+
+pal <- c(colfunc(5), "gray") # include color for "None
+
+# using color picker for data: http://tristen.ca/hcl-picker/#/hlc/6/1.05/1E2E3C/ED9654
+
+pal2 <- c("#1E2E3C", "#0D524F", "#3D7346", "#8F8C36", "#ED9654", "gray")
+
+# including None in the pallette
+
+pal3 <- c("#0E4B4E", "#23674D", "#5B7F3E", "#A18F37", "#ED9654", "#1E2E3C")
+```
+
+
+```{r, fig.width = 10}
+g <- dr |> 
+  filter(state_abb == "CA") |> 
+  ggplot(aes(x = valid_start, y = area_pct, group = state_abb, fill = drought_lvl)) +
+    geom_col(width = 7) # set width to 7 days
+
+g + scale_fill_manual(values = pal)
+```
+
+```{r, fig.width = 10}
+g +
+  scale_fill_manual(values = pal2)
+```
+
+```{r, fig.width = 10}
+g +
+  scale_fill_manual(values = pal3)
+```
+
+For each time point, there is a number for each drought level (d0 -> d4 more extreme drought). So each state has 6 rows for each time point (weekly periods)
+
+```{r}
+dr |> 
+  filter(drought_lvl == "D4",
+         valid_start >= "2020-01-01") |> 
+  ggplot(aes(x = valid_start, y = area_pct, group = state_abb, color = state_abb)) +
+    geom_line() +
+    facet_wrap(~ drought_lvl) +
+    guides(color = "none")
+```
+
+
+# Wrangle
+
+```{r wrangle}
+
+```
+
+# Viz
+
+Resource for alternatives to black (to highlight a sequential color scheme like viridis or the one I'm using here): https://squarebase.co/blogs/news/alternative-colours-to-black-to-use-on-your-squarespace-website
+
+```{r model, fig.width = 10}
+library(geofacet)
+
+geo_plot <- function(data, year) {
+
+  data |> 
+    filter(year(valid_start) == year) |> 
+  ggplot(aes(x = valid_start, y = area_pct, group = state_abb, fill = drought_lvl)) +
+    geom_col(width = 7) +
+    scale_fill_manual(values = pal3) +
+    #scale_x_date(expand = c(0.1, 0.1)) +
+    facet_geo(~ state_abb, grid = "us_state_grid1") +
+    theme_minimal() +
+    theme(text = element_text(color = "bisque1",
+                              family = "Roboto"),
+          strip.text = element_text(color = "bisque4",
+                                    family = "Roboto"),
+          axis.text = element_blank(),
+          axis.ticks = element_blank(),
+          panel.grid = element_blank(),
+          #panel.background = element_rect(fill = "darkgray"),
+          plot.background = element_rect(fill = "#1f1206")) +
+    labs(fill = "Drought Level", x = "", y = "",
+         title = paste("Drought Levels for", year),
+         caption = "Tidy Tuesday | @rbamattre | Source: U.S. Drought Monitor")
+  
+}
+
+geo_plot(dr, 2020)
+
+#geo_plot(dr, 2001)
+```
+
+# Animate
+
+```{r}
+# get a vector of all years in the data
+years <- seq(2001, 2021, by = 1)
+```
+
+
+```{r animate}
+library(animation)
+
+# use animation and purrr to iterate function for each year and save output as gif
+
+animation::saveGIF(
+  expr = {
+    purrr::walk(
+      years,
+      ~ plot(geo_plot(dr, .))
+    )
+  },
+  movie.name = "us_droughts_rb.gif",
+  ani.width = 800,
+  ani.height = 500
+)
+```
