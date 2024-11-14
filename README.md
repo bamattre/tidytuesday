@@ -2,6 +2,10 @@
 
 My contributions to R4DS Online Learning Community's [#TidyTuesday event](https://github.com/rfordatascience/tidytuesday)
 
+## Dog Breeds
+
+![Dog Breeds](https://github.com/bamattre/tidytuesday/blob/master/images/tidytuesday_dog_breeds.png)
+
 ## US Droughts
 
 ![U.S. Droughts](https://github.com/bamattre/tidytuesday/blob/master/images/us_droughts_rb.gif)
