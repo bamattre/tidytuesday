@@ -2,98 +2,110 @@
 
 My contributions to R4DS Online Learning Community's [#TidyTuesday event](https://github.com/rfordatascience/tidytuesday)
 
+## Board Games
+
+<a href="[/link/to/site](https://bamattre.github.io/boardgames/)">
+  <img src="https://posit.co/wp-content/uploads/2024/07/06-boardgames.gif" alt="Board Games interactive table" width="600">
+</a>
+
+Won special prize for interactive table in [the Posit 2024 Table Contest](https://posit.co/blog/2024-table-contest-winners/)! Play [with the interactive table here](https://bamattre.github.io/boardgames/).
+
+A previous attempt at the data - trying to figure out what board games are overrated - lots of ownership and reviews but generally disliked by the board game crowd:
+
+<img src="https://github.com/bamattre/tidytuesday/blob/master/images/2022-01-25%20board%20games.png" alt="Board Game Ratings" width="600">
+
+## Killer Whales
+
+<img src="https://github.com/bamattre/tidytuesday/blob/master/images/tidy_tuesday_killer_whales.png" alt="Killer Whales" width="600">
+
 ## Dog Breeds
 
-![Dog Breeds](https://github.com/bamattre/tidytuesday/blob/master/images/tidytuesday_dog_breeds.png)
+<img src="https://github.com/bamattre/tidytuesday/blob/master/images/tidytuesday_dog_breeds.png" alt="Dog Breeds" width="600">
 
 ## US Droughts
 
-![U.S. Droughts](https://github.com/bamattre/tidytuesday/blob/master/images/us_droughts_rb.gif)
+<img src="https://github.com/bamattre/tidytuesday/blob/master/images/us_droughts_rb.gif" alt="U.S. Droughts" width="600">
 
 ## Plants in Danger
 
-![Plants in Danger](https://github.com/bamattre/tidytuesday/blob/master/images/2020-08-18_plants_in_danger_final_rb.jpg)
+<img src="https://github.com/bamattre/tidytuesday/blob/master/images/2020-08-18_plants_in_danger_final_rb.jpg" alt="Plants in Danger" width="600">
 
 ## LEGO
 
-![LEGO](https://github.com/bamattre/tidytuesday/blob/master/images/2022-09-06%20lego.png)
+<img src="https://github.com/bamattre/tidytuesday/blob/master/images/2022-09-06%20lego.png" alt="LEGO" width="600">
 
 ## [Cryptic Crosswords](https://bamattre.github.io/crossword/)
 
-![Cryptic Crosswords](https://github.com/bamattre/tidytuesday/blob/master/images/crossword_thumb.jpg)
+<img src="https://github.com/bamattre/tidytuesday/blob/master/images/crossword_thumb.jpg" alt="Cryptic Crosswords" width="600">
 
 [See full interactive table](https://bamattre.github.io/crossword/)
 
 ## Ferris Wheels
 
-![Ferris Wheels](https://github.com/bamattre/tidytuesday/blob/master/images/tidytuesday_2022-08-09_ferris_wheels.png)
-
-## Board Game Ratings
-
-![Board Game Ratings](https://github.com/bamattre/tidytuesday/blob/master/images/2022-01-25%20board%20games.png)
+<img src="https://github.com/bamattre/tidytuesday/blob/master/images/tidytuesday_2022-08-09_ferris_wheels.png" alt="Ferris Wheels" width="600">
 
 ## London Animal Rescues
 
-![London Animal Rescues](https://github.com/bamattre/tidytuesday/blob/master/images/2020-06-29_animal_rescue_london.png)
+<img src="https://github.com/bamattre/tidytuesday/blob/master/images/2020-06-29_animal_rescue_london.png" alt="London Animal Rescues" width="600">
 
 ## Mario Kart 64 Records
 
-![Mario Kart 64 Records](https://github.com/bamattre/tidytuesday/blob/master/images/2021-05-25%20mario%20kart%2064.png)
+<img src="https://github.com/bamattre/tidytuesday/blob/master/images/2021-05-25%20mario%20kart%2064.png" alt="Mario Kart 64 Records" width="600">
 
 [Article about Beck 'abney317' Abney](https://kotaku.com/mario-kart-64-speedrunner-sets-new-world-record-by-repe-1846254228)
 
 ## US Infrastructure (Python)
 
-![US Infrastructure](https://github.com/bamattre/tidytuesday/blob/master/images/2021-08-13_infrastructure.png)
+<img src="https://github.com/bamattre/tidytuesday/blob/master/images/2021-08-13_infrastructure.png" alt="US Infrastructure" width="600">
 
 ## Olympics
 
-![Olympics](https://github.com/bamattre/tidytuesday/blob/master/images/tidytuesday_2021-07-27_olympics_athletes_wealth.png)
+<img src="https://github.com/bamattre/tidytuesday/blob/master/images/tidytuesday_2021-07-27_olympics_athletes_wealth.png" alt="Olympics" width="600">
 
 Olympic Athletes, Gold medals, and national wealth and inequality: [Full Report](https://htmlpreview.github.io/?https://github.com/bamattre/tidytuesday/blob/master/tidytuesday_2021-07-27_olympics.html)
 
 ## Netflix Movies (Python)
 
-![Netflix Movies](https://github.com/bamattre/tidytuesday/blob/master/images/2021-04-20%20netflix%20movies.png)
+<img src="https://github.com/bamattre/tidytuesday/blob/master/images/2021-04-20%20netflix%20movies.png" alt="Netflix Movies" width="600">
 
 ## Toronto Shelters
 
-![Toronto Shelters](https://github.com/bamattre/tidytuesday/blob/master/images/2020-12-01%20toronto%20shelters.png)
+<img src="https://github.com/bamattre/tidytuesday/blob/master/images/2020-12-01%20toronto%20shelters.png" alt="Toronto Shelters" width="600">
 
 ## Washington Trails
 
-![Washington Trails](https://github.com/bamattre/tidytuesday/blob/master/images/2020-11-24%20washington%20trails.png)
+<img src="https://github.com/bamattre/tidytuesday/blob/master/images/2020-11-24%20washington%20trails.png" alt="Washington Trails" width="600">
 
 ## Great American Beer Festival
 
 This visual and code was [explored by Patrick Ward and Ellis Hughes in their TidyX video series](https://www.youtube.com/watch?v=j0gj438orbs).
 
-![Beer](https://github.com/bamattre/tidytuesday/blob/master/images/2020-10-20%20beer.png)
+<img src="https://github.com/bamattre/tidytuesday/blob/master/images/2020-10-20%20beer.png" alt="Beer" width="600">
 
 ## Datasaurus
 
-![Datasaurus](https://github.com/bamattre/tidytuesday/blob/master/images/2020-10-13%20datasaurus.gif)
+<img src="https://github.com/bamattre/tidytuesday/blob/master/images/2020-10-13%20datasaurus.gif" alt="Datasaurus" width="600">
 
 ## NCAA Women's Basketball Tournaments
 
-![NCAA Womens](https://github.com/bamattre/tidytuesday/blob/master/images/2020-10-06%20ncaa%20womens%20basketball.png)
+<img src="https://github.com/bamattre/tidytuesday/blob/master/images/2020-10-06%20ncaa%20womens%20basketball.png" alt="NCAA Womens" width="600">
 
 ## Beyonce ~~and Taylor Swift~~ (2020-09-29)
 
-![Beyonce](https://github.com/bamattre/tidytuesday/blob/master/images/2020-09-29%20beyonce.png)
+<img src="https://github.com/bamattre/tidytuesday/blob/master/images/2020-09-29%20beyonce.png" alt="Beyonce" width="600">
 
 ## Himalayan Expeditions (2020-09-22)
 
-![Expeditions](https://github.com/bamattre/tidytuesday/blob/master/images/2020-09-22_himalayan_exp_v2.png)
+<img src="https://github.com/bamattre/tidytuesday/blob/master/images/2020-09-22_himalayan_exp_v2.png" alt="Expeditions" width="600">
 
 ## Friends (2020-09-08)
 
-![Friends](https://github.com/bamattre/tidytuesday/blob/master/images/2020-09-08%20Friends.png)
+<img src="https://github.com/bamattre/tidytuesday/blob/master/images/2020-09-08%20Friends.png" alt="Friends" width="600">
 
 ## Europe Energy (2020-08-04)
 
-![Europe Energy](https://github.com/bamattre/tidytuesday/blob/master/images/2020-08-04%20European%20Energy%20Production.gif)
+<img src="https://github.com/bamattre/tidytuesday/blob/master/images/2020-08-04%20European%20Energy%20Production.gif" alt="Europe Energy" width="600">
 
 ## Palmer's Penguins (2020-07-29)
 
-![Palmers Penguins](https://github.com/bamattre/tidytuesday/blob/master/images/2020-07-29_palmer_penguins.png)
+<img src="https://github.com/bamattre/tidytuesday/blob/master/images/2020-07-29_palmer_penguins.png" alt="Palmers Penguins" width="600">
