@@ -1,0 +1,289 @@
+---
+title: Tidy Tuesday - Killer Whales
+author: Richard Bamattre
+date: "2024-11-15"
+output: html_notebook
+---
+
+**Purpose**
+
+
+
+**Description**
+
+
+
+**Data Sources**
+
+
+
+*Other Notes*
+
+
+
+*Change log*
+
+
+```{r setup}
+## Load libraries
+
+# read
+
+# explore
+
+# wrangle
+library(tidyverse) # key packages - remove if not using
+library(lubridate)
+library(janitor)
+
+# viz
+library(ggthemes)
+
+# Import fonts 
+
+library(showtext)
+
+font <- "Roboto"
+
+font_add_google(name = font, family = font)
+
+# change theme
+theme_solarized2 <- theme_solarized(light = FALSE) +
+  theme(text = element_text(family = font))
+
+theme_set(theme_solarized2)
+
+showtext_auto()
+
+# model
+library(sf)
+
+# export
+
+## Custom functions
+
+# If not using a project, set the working directory to where the markdown
+# script is located:
+
+setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
+```
+
+# Read
+
+```{r read}
+orcas <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2024/2024-10-15/orcas.csv')
+```
+
+# Wrangle
+
+```{r wrangle}
+max_date = max(orcas$date, na.rm = TRUE)
+
+orcas2 <- orcas |> 
+  mutate(
+    vessel_cl = case_when(
+      str_detect(vessel, "Orcinus") ~ "Orcinus",
+      str_detect(vessel, "Mike") ~ "Mike",
+      str_detect(vessel, "KCB III") ~ "KCB III",
+      str_detect(vessel, "Morning") ~ "Morning Star",
+      str_detect(vessel, "Chimo") ~ "Chimo",
+      str_detect(vessel, "Sweet") ~ "Sweet Revenge",
+      str_detect(vessel, "Shachi") ~ "Shachi",
+      TRUE ~ "Other"
+    ),
+    J = if_else(str_detect(pods_or_ecotype, "J"), 1, 0),
+    K = if_else(str_detect(pods_or_ecotype, "K"), 1, 0),
+    L = if_else(str_detect(pods_or_ecotype, "L"), 1, 0),
+    Biggs = if_else(str_detect(pods_or_ecotype, "Bigg"), 1, 0),
+    days_since = lubridate::interval(date, max_date) / days(1),
+  )
+```
+
+```{r}
+orcas_sf <- st_as_sf(orcas2 |> 
+                       filter(!is.na(end_longitude),
+                              !is.na(end_latitude)), 
+                     coords = c("end_longitude", "end_latitude"))
+```
+
+```{r}
+# more recent sightings - higher alpha
+
+orcas_sf |> 
+  ggplot() +
+    geom_sf(aes(color = vessel_cl, alpha = 1 - days_since)) +
+    theme_map()
+```
+
+Look at lines from from begin -> end
+
+```{r}
+orcas3 <- orcas2 |> 
+  mutate(id = row_number()) |> 
+  filter(!is.na(begin_latitude), !is.na(begin_longitude),
+         !is.na(end_latitude), !is.na(end_longitude)) |> 
+  mutate(from = paste0(begin_longitude, "_", begin_latitude),
+         to = paste0(end_longitude, "_", end_latitude)) |> 
+  pivot_longer(from:to, values_to = "coords") |> 
+  group_by(id) |> 
+  mutate(order = row_number()) |> 
+  separate(coords, into = c("long", "lat"), sep = "_") |> 
+  st_as_sf(coords = c("long", "lat")) |> 
+  group_by(id) |> 
+  summarize()
+
+# some geometries may just be points - filter to only multipoints
+# then cast as linestrings
+
+orcas_l <- filter(orcas3, st_geometry_type(orcas3) == "MULTIPOINT") |> 
+  st_cast("LINESTRING") |> 
+  left_join(orcas2 |> mutate(id = row_number()), by = "id")
+
+orcas_l |> 
+  ggplot(aes(color = vessel_cl, alpha = 1 - days_since)) +
+    geom_sf() +
+    theme_map()
+```
+
+# Viz
+
+```{r viz}
+bc <- st_read("british-columbia_792.geojson")
+
+plot(bc)
+```
+
+```{r}
+# align CRS (projection system)
+
+st_crs(orcas_l) <- st_crs(bc)
+```
+
+```{r}
+# figure out plot limits
+min(orcas2$begin_latitude, na.rm = TRUE)
+min(orcas2$begin_longitude, na.rm = TRUE)
+max(orcas2$begin_latitude, na.rm = TRUE)
+max(orcas2$begin_longitude, na.rm = TRUE)
+```
+
+
+```{r, fig.width=12, fig.height=8}
+ggplot() +
+  geom_sf(data = orcas_l, aes(color = vessel_cl, alpha = 1 - days_since), linewidth = 1) +
+  geom_sf(data = bc, color = NA, fill = "#586e75") +
+  coord_sf(xlim = c(-127, -122), ylim = c(48, 49.5)) +
+  theme(panel.border = element_blank(),
+        axis.text = element_blank(),
+        axis.line = element_blank(),
+        axis.ticks = element_blank(),
+        panel.grid = element_blank()) +
+  labs(color = "", title = "Killer Whales Vessels") +
+  scale_color_ptol() +
+  guides(alpha = "none")
+```
+```{r}
+orcas_l_long <- orcas_l |> 
+  pivot_longer(J:Biggs, names_to = "pod", values_to = "value") |> 
+  filter(value == 1) |> 
+  mutate(length = st_length(geometry) |> as.numeric()) # find line length
+
+# do the same for the end point
+orcas_p_long <- orcas_sf |> 
+  pivot_longer(J:Biggs, names_to = "pod", values_to = "value") |> 
+  filter(value == 1)
+```
+
+```{r}
+# align CRS 
+st_crs(orcas_sf) <- st_crs(orcas_l_long)
+
+st_crs(orcas_p_long) <- st_crs(orcas_l_long)
+```
+
+```{r}
+ggplot() +
+  geom_sf(data = orcas_l_long, aes(color = length))
+```
+
+
+```{r, fig.width=12, fig.height=8}
+g <- ggplot() +
+  geom_sf(data = orcas_l_long |> 
+            filter(year >= 2022,
+                   length < 80000), # remove very long paths that go through the island 
+          aes(color = pod, alpha = 1 - days_since), linewidth = 1) +
+  geom_sf(data = orcas_p_long |> 
+            filter(year >= 2022), 
+          aes(color = pod), alpha = 0.5, size = 2) +
+  geom_sf(data = bc, color = NA, fill = "#586e75") +
+  #theme_solarized(light = FALSE) +
+  coord_sf(xlim = c(-126, -122), ylim = c(48, 49.5)) +
+  theme(legend.position = "bottom",
+        panel.border = element_blank(),
+        axis.text = element_blank(),
+        axis.line = element_blank(),
+        axis.ticks = element_blank(),
+        panel.grid = element_blank()) +
+  labs(color = "Pod or Ecotype", title = "") +
+  scale_color_ptol() +
+  guides(alpha = "none")
+
+g
+```
+
+```{r, fig.width=12, fig.height=8}
+g2 <- g +
+  facet_wrap(~ pod) +
+  guides(color = "none") +
+  theme(strip.background = element_blank(), strip.text = element_text(color = "#93a1a1")) +
+  labs(title = "")
+
+g2
+```
+
+Assemble final plot
+
+```{r, fig.width = 8, fig.height = 8}
+library(gridExtra)
+library(grid)
+
+showtext_auto()
+
+text <- ggplot() +
+  annotate("text",
+           label = paste("An encounter refers to any time killer whales (orcas) are observed from research boats or land.\n",
+                         "Pods of fish-eating resident orcas are labelled with alphabet letters (J, K, L)\n",
+                         "while transient orcas (Bigg's) are mammal eating."),
+           color = "#8a8a8a",
+           x = 0, y = 0, size = 4, 
+           family = font) +
+  theme_void() +
+  theme(panel.background = element_rect(fill = "#002b36", color = NA))
+
+fig <- arrangeGrob(g, text, g2, 
+                   nrow = 3, ncol = 1,
+                   heights = c(1, 0.15, 1),
+                   top = textGrob("Tracking Killer Whale Pods Around Vancouver Island", 
+                                gp = gpar(col = "#8a8a8a",
+                                          hjust = -1,
+                                          cex = 1.7,
+                                          fontfamily = font)),
+                 bottom = textGrob("Tidy Tuesday | @bamattre.bsky.social | Source: whaleresearch.com", 
+                                   gp = gpar(col = "#8a8a8a",
+                                             hjust = 0,
+                                             cex = 0.8,
+                                             fontfamily = font)))
+
+fig
+
+ggsave("killer whales.png", fig, width = 8, height = 11, dpi = 150,
+       bg = "#002b36")
+```
+
+
+# Export
+
+```{r export}
+
+```
