@@ -4,8 +4,8 @@ My contributions to R4DS Online Learning Community's [#TidyTuesday event](https:
 
 ## Hamlet
 
-<img src="https://github.com/bamattre/tidytuesday/blob/master/images/hamlet1.png" alt="Hamlet with Gen X slang area chart" width="600">
-<img src="https://github.com/bamattre/tidytuesday/blob/master/images/hamlet2.png" alt="Hamlet with Gen X slang line chart" width="600">
+<img src="https://github.com/bamattre/tidytuesday/blob/master/images/hamlet1.png" alt="Hamlet with Gen Alpha slang area chart" width="600">
+<img src="https://github.com/bamattre/tidytuesday/blob/master/images/hamlet2.png" alt="Hamlet with Gen Alpha slang line chart" width="600">
 
 ## Board Games
 
