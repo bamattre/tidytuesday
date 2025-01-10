@@ -2,13 +2,18 @@
 
 My contributions to R4DS Online Learning Community's [#TidyTuesday event](https://github.com/rfordatascience/tidytuesday)
 
+## Hamlet
+
+<img src="https://github.com/bamattre/tidytuesday/blob/master/images/hamlet1.png" alt="Hamlet with Gen X slang area chart" width="600">
+<img src="https://github.com/bamattre/tidytuesday/blob/master/images/hamlet2.png" alt="Hamlet with Gen X slang line chart" width="600">
+
 ## Board Games
 
 <a href="[/link/to/site](https://bamattre.github.io/boardgames/)">
   <img src="https://posit.co/wp-content/uploads/2024/07/06-boardgames.gif" alt="Board Games interactive table" width="600">
 </a>
 
-Won special prize for interactive table in [the Posit 2024 Table Contest](https://posit.co/blog/2024-table-contest-winners/)! Play [with the interactive table here](https://bamattre.github.io/boardgames/).
+This table won special prize for interactive table in [the Posit 2024 Table Contest](https://posit.co/blog/2024-table-contest-winners/)! Play [with the interactive table here](https://bamattre.github.io/boardgames/).
 
 A previous attempt at the data - trying to figure out what board games are overrated - lots of ownership and reviews but generally disliked by the board game crowd:
 
