@@ -2,11 +2,6 @@
 
 My contributions to R4DS Online Learning Community's [#TidyTuesday event](https://github.com/rfordatascience/tidytuesday)
 
-## Hamlet
-
-<img src="https://github.com/bamattre/tidytuesday/blob/master/images/hamlet1.png" alt="Hamlet with Gen Alpha slang area chart" width="600">
-<img src="https://github.com/bamattre/tidytuesday/blob/master/images/hamlet2.png" alt="Hamlet with Gen Alpha slang line chart" width="600">
-
 ## Board Games
 
 <a href="[/link/to/site](https://bamattre.github.io/boardgames/)">
@@ -19,6 +14,26 @@ A previous attempt at the data - trying to figure out what board games are overr
 
 <img src="https://github.com/bamattre/tidytuesday/blob/master/images/2022-01-25%20board%20games.png" alt="Board Game Ratings" width="600">
 
+## Great American Beer Festival
+
+This visual and code was [explored by Patrick Ward and Ellis Hughes in their TidyX video series](https://www.youtube.com/watch?v=j0gj438orbs).
+
+<img src="https://github.com/bamattre/tidytuesday/blob/master/images/2020-10-20%20beer.png" alt="Beer" width="600">
+
+## US Droughts
+
+<img src="https://github.com/bamattre/tidytuesday/blob/master/images/us_droughts_rb.gif" alt="U.S. Droughts" width="600">
+
+## Datasaurus
+
+<img src="https://github.com/bamattre/tidytuesday/blob/master/images/2020-10-13%20datasaurus.gif" alt="Datasaurus" width="600">
+
+## [Cryptic Crosswords](https://bamattre.github.io/crossword/)
+
+<img src="https://github.com/bamattre/tidytuesday/blob/master/images/crossword_thumb.jpg" alt="Cryptic Crosswords" width="600">
+
+[See full interactive table](https://bamattre.github.io/crossword/)
+
 ## Killer Whales
 
 <img src="https://github.com/bamattre/tidytuesday/blob/master/images/tidy_tuesday_killer_whales.png" alt="Killer Whales" width="600">
@@ -27,23 +42,25 @@ A previous attempt at the data - trying to figure out what board games are overr
 
 <img src="https://github.com/bamattre/tidytuesday/blob/master/images/tidytuesday_dog_breeds.png" alt="Dog Breeds" width="600">
 
-## US Droughts
-
-<img src="https://github.com/bamattre/tidytuesday/blob/master/images/us_droughts_rb.gif" alt="U.S. Droughts" width="600">
-
 ## Plants in Danger
 
 <img src="https://github.com/bamattre/tidytuesday/blob/master/images/2020-08-18_plants_in_danger_final_rb.jpg" alt="Plants in Danger" width="600">
 
+## Mario Kart 64 Records
+
+<img src="https://github.com/bamattre/tidytuesday/blob/master/images/2021-05-25%20mario%20kart%2064.png" alt="Mario Kart 64 Records" width="600">
+
+[Article about Beck 'abney317' Abney](https://kotaku.com/mario-kart-64-speedrunner-sets-new-world-record-by-repe-1846254228)
+
+## Olympics
+
+<img src="https://github.com/bamattre/tidytuesday/blob/master/images/tidytuesday_2021-07-27_olympics_athletes_wealth.png" alt="Olympics" width="600">
+
+Olympic Athletes, Gold medals, and national wealth and inequality: [Full Report](https://htmlpreview.github.io/?https://github.com/bamattre/tidytuesday/blob/master/tidytuesday_2021-07-27_olympics.html)
+
 ## LEGO
 
 <img src="https://github.com/bamattre/tidytuesday/blob/master/images/2022-09-06%20lego.png" alt="LEGO" width="600">
-
-## [Cryptic Crosswords](https://bamattre.github.io/crossword/)
-
-<img src="https://github.com/bamattre/tidytuesday/blob/master/images/crossword_thumb.jpg" alt="Cryptic Crosswords" width="600">
-
-[See full interactive table](https://bamattre.github.io/crossword/)
 
 ## Ferris Wheels
 
@@ -53,21 +70,9 @@ A previous attempt at the data - trying to figure out what board games are overr
 
 <img src="https://github.com/bamattre/tidytuesday/blob/master/images/2020-06-29_animal_rescue_london.png" alt="London Animal Rescues" width="600">
 
-## Mario Kart 64 Records
-
-<img src="https://github.com/bamattre/tidytuesday/blob/master/images/2021-05-25%20mario%20kart%2064.png" alt="Mario Kart 64 Records" width="600">
-
-[Article about Beck 'abney317' Abney](https://kotaku.com/mario-kart-64-speedrunner-sets-new-world-record-by-repe-1846254228)
-
 ## US Infrastructure (Python)
 
 <img src="https://github.com/bamattre/tidytuesday/blob/master/images/2021-08-13_infrastructure.png" alt="US Infrastructure" width="600">
-
-## Olympics
-
-<img src="https://github.com/bamattre/tidytuesday/blob/master/images/tidytuesday_2021-07-27_olympics_athletes_wealth.png" alt="Olympics" width="600">
-
-Olympic Athletes, Gold medals, and national wealth and inequality: [Full Report](https://htmlpreview.github.io/?https://github.com/bamattre/tidytuesday/blob/master/tidytuesday_2021-07-27_olympics.html)
 
 ## Netflix Movies (Python)
 
@@ -80,16 +85,6 @@ Olympic Athletes, Gold medals, and national wealth and inequality: [Full Report]
 ## Washington Trails
 
 <img src="https://github.com/bamattre/tidytuesday/blob/master/images/2020-11-24%20washington%20trails.png" alt="Washington Trails" width="600">
-
-## Great American Beer Festival
-
-This visual and code was [explored by Patrick Ward and Ellis Hughes in their TidyX video series](https://www.youtube.com/watch?v=j0gj438orbs).
-
-<img src="https://github.com/bamattre/tidytuesday/blob/master/images/2020-10-20%20beer.png" alt="Beer" width="600">
-
-## Datasaurus
-
-<img src="https://github.com/bamattre/tidytuesday/blob/master/images/2020-10-13%20datasaurus.gif" alt="Datasaurus" width="600">
 
 ## NCAA Women's Basketball Tournaments
 
@@ -114,3 +109,8 @@ This visual and code was [explored by Patrick Ward and Ellis Hughes in their Tid
 ## Palmer's Penguins (2020-07-29)
 
 <img src="https://github.com/bamattre/tidytuesday/blob/master/images/2020-07-29_palmer_penguins.png" alt="Palmers Penguins" width="600">
+
+## Hamlet
+
+<img src="https://github.com/bamattre/tidytuesday/blob/master/images/hamlet1.png" alt="Hamlet with Gen Alpha slang area chart" width="600">
+<img src="https://github.com/bamattre/tidytuesday/blob/master/images/hamlet2.png" alt="Hamlet with Gen Alpha slang line chart" width="600">
