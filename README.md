@@ -112,5 +112,5 @@ Olympic Athletes, Gold medals, and national wealth and inequality: [Full Report]
 
 ## Hamlet
 
-<img src="https://github.com/bamattre/tidytuesday/blob/master/images/hamlet1.png" alt="Hamlet with Gen Alpha slang area chart" width="600">
-<img src="https://github.com/bamattre/tidytuesday/blob/master/images/hamlet2.png" alt="Hamlet with Gen Alpha slang line chart" width="600">
+<img src="https://github.com/bamattre/tidytuesday/blob/master/images/hamlet1.png" alt="Hamlet with Gen Alpha slang area chart" width="400">
+<img src="https://github.com/bamattre/tidytuesday/blob/master/images/hamlet2.png" alt="Hamlet with Gen Alpha slang line chart" width="400">
