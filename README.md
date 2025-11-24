@@ -20,19 +20,27 @@ This visual and code was [explored by Patrick Ward and Ellis Hughes in their Tid
 
 <img src="https://github.com/bamattre/tidytuesday/blob/master/images/2020-10-20%20beer.png" alt="Beer" width="600">
 
-## US Droughts
-
-<img src="https://github.com/bamattre/tidytuesday/blob/master/images/us_droughts_rb.gif" alt="U.S. Droughts" width="600">
-
-## Datasaurus
-
-<img src="https://github.com/bamattre/tidytuesday/blob/master/images/2020-10-13%20datasaurus.gif" alt="Datasaurus" width="600">
-
 ## [Cryptic Crosswords](https://bamattre.github.io/crossword/)
 
 <img src="https://github.com/bamattre/tidytuesday/blob/master/images/crossword_thumb.jpg" alt="Cryptic Crosswords" width="600">
 
 [See full interactive table](https://bamattre.github.io/crossword/)
+
+## US Droughts
+
+<img src="https://github.com/bamattre/tidytuesday/blob/master/images/us_droughts_rb.gif" alt="U.S. Droughts" width="600">
+
+## Toronto Shelters
+
+<img src="https://github.com/bamattre/tidytuesday/blob/master/images/2020-12-01%20toronto%20shelters.png" alt="Toronto Shelters" width="600">
+
+## Datasaurus
+
+<img src="https://github.com/bamattre/tidytuesday/blob/master/images/2020-10-13%20datasaurus.gif" alt="Datasaurus" width="600">
+
+## Washington Trails
+
+<img src="https://github.com/bamattre/tidytuesday/blob/master/images/2020-11-24%20washington%20trails.png" alt="Washington Trails" width="600">
 
 ## Killer Whales
 
@@ -45,6 +53,10 @@ This visual and code was [explored by Patrick Ward and Ellis Hughes in their Tid
 ## Plants in Danger
 
 <img src="https://github.com/bamattre/tidytuesday/blob/master/images/2020-08-18_plants_in_danger_final_rb.jpg" alt="Plants in Danger" width="600">
+
+## Friends (2020-09-08)
+
+<img src="https://github.com/bamattre/tidytuesday/blob/master/images/2020-09-08%20Friends.png" alt="Friends" width="600">
 
 ## Mario Kart 64 Records
 
@@ -78,14 +90,6 @@ Olympic Athletes, Gold medals, and national wealth and inequality: [Full Report]
 
 <img src="https://github.com/bamattre/tidytuesday/blob/master/images/2021-04-20%20netflix%20movies.png" alt="Netflix Movies" width="600">
 
-## Toronto Shelters
-
-<img src="https://github.com/bamattre/tidytuesday/blob/master/images/2020-12-01%20toronto%20shelters.png" alt="Toronto Shelters" width="600">
-
-## Washington Trails
-
-<img src="https://github.com/bamattre/tidytuesday/blob/master/images/2020-11-24%20washington%20trails.png" alt="Washington Trails" width="600">
-
 ## NCAA Women's Basketball Tournaments
 
 <img src="https://github.com/bamattre/tidytuesday/blob/master/images/2020-10-06%20ncaa%20womens%20basketball.png" alt="NCAA Womens" width="600">
@@ -97,10 +101,6 @@ Olympic Athletes, Gold medals, and national wealth and inequality: [Full Report]
 ## Himalayan Expeditions (2020-09-22)
 
 <img src="https://github.com/bamattre/tidytuesday/blob/master/images/2020-09-22_himalayan_exp_v2.png" alt="Expeditions" width="600">
-
-## Friends (2020-09-08)
-
-<img src="https://github.com/bamattre/tidytuesday/blob/master/images/2020-09-08%20Friends.png" alt="Friends" width="600">
 
 ## Europe Energy (2020-08-04)
 
