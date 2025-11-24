@@ -10,7 +10,7 @@ My contributions to R4DS Online Learning Community's [#TidyTuesday event](https:
 
 This table won special prize for interactive table in [the Posit 2024 Table Contest](https://posit.co/blog/2024-table-contest-winners/)! Play [with the interactive table here](https://bamattre.github.io/boardgames/).
 
-A previous attempt at the data - trying to figure out what board games are overrated - lots of ownership and reviews but generally disliked by the board game crowd:
+A previous attempt at the data - trying to figure out what board games are overrated (a lot of people own them but generally get bad reviews):
 
 <img src="https://github.com/bamattre/tidytuesday/blob/master/images/2022-01-25%20board%20games.png" alt="Board Game Ratings" width="600">
 
